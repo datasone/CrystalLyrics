@@ -1,0 +1,8 @@
+<!DOCTYPE RCC>
+<RCC>
+    <qresource prefix="/image">
+        <file>icon.png</file>
+        <file>closeButtonBlack.png</file>
+        <file>closeButtonWhite.png</file>
+    </qresource>
+</RCC>
