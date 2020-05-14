@@ -87,7 +87,7 @@ public:
         return (!track.title.empty() && (track.instrumental || !lyrics.empty()));
     };
 
-    string filename();
+    [[nodiscard]] string filename() const;
 
     string readableString();
 
@@ -105,7 +105,7 @@ class CLyricSearch {
 
     void appendResultCallback(std::vector<CLyric> lyrics);
 
-    CLyricProvider* providerList[6];
+    CLyricProvider* providerList[6]{};
 
 public:
     explicit CLyricSearch(opencc::SimpleConverter& converter);

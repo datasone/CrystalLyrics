@@ -15,9 +15,6 @@ const int roundCornerRadius = 36;
 
 DesktopLyricsWindow::DesktopLyricsWindow(QWidget* parent, CLyric* lyric, TrayIcon* trayIcon)
         : QWidget(parent), cLyric(lyric), trayIcon(trayIcon) {
-    QScreen* screen = QApplication::primaryScreen();
-    const int screenWidth = screen->geometry().width();
-    const int screenHeight = screen->geometry().height();
 
     doubleLineDisplay = settings.value("doubleLineDisplay", false).toBool();
     bgColor = QColor(settings.value("bgColor", "#99000000").toString());
@@ -36,13 +33,11 @@ DesktopLyricsWindow::DesktopLyricsWindow(QWidget* parent, CLyric* lyric, TrayIco
 
     conversionTCSC = settings.value("conversionTCSC", false).toBool();
 
-    int fontHeight = QFontMetrics(desktopFont).height();
-
     this->setAttribute(Qt::WA_TransparentForMouseEvents);
     this->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
-    this->setFixedSize(screenWidth * 0.8, doubleLineDisplay ? fontHeight * 3 : fontHeight * 2);
-    this->move(screenWidth * 0.1, screenHeight * 0.75);
+
+    this->resize();
     this->setContentsMargins(50, 0, 50, 0);
 
     layout = new QVBoxLayout(this);
@@ -103,6 +98,11 @@ void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
 
     currentLine = lineNum;
 
+    if (cLyric->lyrics.empty()) {
+        pause();
+        return;
+    }
+
     if (currentLine < cLyric->lyrics.size() - 1) {
         CLyricItem* currentLyric = &cLyric->lyrics[currentLine], * nextLyric = &cLyric->lyrics[currentLine + 1];
 
@@ -154,12 +154,28 @@ void DesktopLyricsWindow::pause() {
     auto* animation = new QPropertyAnimation(this, "windowOpacity");
     animation->setEndValue(0);
     animation->setDuration(200);
-    animation->start(QAbstractAnimation::DeleteWhenStopped);
+    connect(animation, &QPropertyAnimation::finished, [this]() {
+        this->hide();
+        sender()->deleteLater();
+    });
+    animation->start();
 }
 
 void DesktopLyricsWindow::resume() {
+    this->show();
     auto* animation = new QPropertyAnimation(this, "windowOpacity");
     animation->setEndValue(1);
     animation->setDuration(200);
     animation->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+void DesktopLyricsWindow::resize(int screenIndex) {
+    QList<QScreen*> screens = QApplication::screens();
+    QScreen* screen = screens[screenIndex];
+    const int screenWidth = screen->availableGeometry().width();
+    const int screenHeight = screen->availableGeometry().height();
+    int fontHeight = QFontMetrics(desktopFont).height();
+
+    this->setFixedSize(screenWidth * 0.8, doubleLineDisplay ? fontHeight * 3 : fontHeight * 2);
+    this->move(screen->geometry().x() + screenWidth * 0.1, screen->geometry().y() + screenHeight - this->height() - 20);
 }

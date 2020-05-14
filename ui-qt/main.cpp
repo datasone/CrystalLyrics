@@ -14,6 +14,7 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setOrganizationDomain("datasone.moe");
     QCoreApplication::setApplicationName("CrystalLyrics");
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
     QApplication app(argc, argv);
     QApplication::setWindowIcon(QIcon(":/image/icon.png"));
     QApplication::setQuitOnLastWindowClosed(false);

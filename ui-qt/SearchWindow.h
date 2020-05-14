@@ -48,10 +48,12 @@ signals:
 private:
     Ui::SearchWindow* ui;
     int duration, selectedRow = -1;
+
     QNetworkAccessManager* nam;
     QNetworkReply* networkReply = nullptr;
     QTimer* timer;
     QMap<QString, QPixmap> coverImages;
+
     std::vector<CLyric> lyricList;
 };
 

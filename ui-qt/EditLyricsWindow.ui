@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>500</height>
+    <width>450</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -45,6 +45,14 @@
           <property name="text">
            <string>Auto Extract
 Translate</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="adjustTimeButton">
+          <property name="text">
+           <string>Auto Adjust
+Lyric Time</string>
           </property>
          </widget>
         </item>

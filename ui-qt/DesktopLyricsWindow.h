@@ -20,13 +20,15 @@ Q_OBJECT
 public:
     explicit DesktopLyricsWindow(QWidget* parent = nullptr, CLyric* lyric = nullptr, TrayIcon* trayIcon = nullptr);
 
+    void resize(int screenIndex = 0);
+
 private:
     QVBoxLayout* layout;
     CLyricLabel* firstLine, * secondLine;
     CLyric* cLyric;
     int currentLine = 0;
 
-    TrayIcon *trayIcon;
+    TrayIcon* trayIcon;
 
     QSettings settings;
     QColor bgColor, lyricsTextColor, lyricsTextPlayedColor;

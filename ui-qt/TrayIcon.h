@@ -38,13 +38,23 @@ public:
 
 private slots:
 
+    void screenChanged(QScreen* screen);
+
+    void geometryChanged();
+
+    void setDesktopLyricScreen();
+
     void showLyricsWindow();
+
+    void reshowDesktopLyricsWindow();
 
     void showSearchWindow();
 
     void showSettingsWindow();
 
-    void setInstrumental();
+    void setTrackInstrumental();
+
+    void setAlbumInstrumental();
 
     void wrongLyric();
 
@@ -60,6 +70,8 @@ private slots:
 
     void cleanupOnQuit();
 
+    void clearLyrics();
+
 public slots:
 
     void updateLyric(const CLyric& lyric, bool manualSearch);
@@ -70,19 +82,27 @@ signals:
 
     void lyricFound(const CLyric& lyric, bool manualSearch);
 
+    void clearLyricsSignal();
+
 private:
     QSystemTrayIcon* trayIcon;
-    QMenu* menu;
+    QMenu* mainMenu, * screenSubMenu;
 
     QAction
             * lyricsWindowAction,
+            * desktopLyricsWindowAction,
             * searchLyricAction,
-            * markAsInstrumentalAction,
             * markAsWrongAction,
+            * markTrackAsInstrumentalAction,
+            * markAlbumAsInstrumentalAction,
             * loadLocalLyricFileAction,
             * editLyricsAction,
             * settingsAction,
             * exitAction;
+
+    QActionGroup* actionGroup;
+    QList<QAction*> screenActions;
+    QString chosenScreenName;
 
     QLocalServer* server;
     QHash<QLocalSocket*, QString> socketMap;
@@ -103,6 +123,10 @@ private:
     bool conversionTCSC;
 
     QString appDataPath;
+
+    bool desktopLyrics;
+
+    void createMenu(bool firstTime = false);
 
     void parseSocketResult(QLocalSocket* socket);
 

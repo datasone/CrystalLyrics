@@ -67,6 +67,9 @@ void CLyricLabel::startFill(int currentSegmentIndex, int currentTimeInSegment) {
         return;
     }
 
+    if (segmentIndex >= pixelMap.size())
+        return;
+
     if (maskWidthInterval < 0 && segmentIndex > 0) {
         const int timeInterval = pixelMap[segmentIndex].first - pixelMap[segmentIndex - 1].first;
         const int pixelInterval = pixelMap[segmentIndex].second - pixelMap[segmentIndex - 1].second;

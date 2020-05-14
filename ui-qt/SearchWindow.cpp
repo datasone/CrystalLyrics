@@ -38,9 +38,10 @@ SearchWindow::SearchWindow(const string& title, const string& artist, int durati
 
     connect(timer, &QTimer::timeout, this, &SearchWindow::timeout);
     connect(nam, &QNetworkAccessManager::finished, this, &SearchWindow::coverDownloadfinished);
-    connect(this, &SearchWindow::searchResultSignal, this, &SearchWindow::appendLyrics,
-            Qt::ConnectionType::QueuedConnection);
     connect(this, &SearchWindow::updateLyricSignal, trayIcon, &TrayIcon::updateLyric);
+
+    connect(this, &SearchWindow::searchResultSignal,
+            this, &SearchWindow::appendLyrics, Qt::ConnectionType::BlockingQueuedConnection);
 }
 
 SearchWindow::~SearchWindow() {
@@ -55,34 +56,47 @@ void SearchWindow::searchLyrics() {
     ui->progressBar->reset();
     ui->progressBar->setMaximum(0);
 
+    selectedRow = -1;
+
     std::thread thread([this] {
-        auto lyrics = CLyricSearch(TrayIcon::openCCSimpleConverter).searchCLyric(ui->titleEdit->text().toStdString(),
-                                                                                 ui->artistEdit->text().toStdString(),
-                                                                                 duration);
+        string title = this->ui->titleEdit->text().toStdString();
+        string artist = this->ui->artistEdit->text().toStdString();
+        QPointer<SearchWindow> searchWindow = QPointer<SearchWindow>(this);
+
+        auto lyrics = CLyricSearch(TrayIcon::openCCSimpleConverter).searchCLyric(title, artist, duration);
 
         std::stable_sort(lyrics.begin(), lyrics.end(),
-                         [this](const CLyric& res1, const CLyric& res2) {
-                             string title = this->ui->titleEdit->text().toStdString();
-                             string artist = this->ui->artistEdit->text().toStdString();
+                         [&](const CLyric& res1, const CLyric& res2) {
                              int length = title.size() + artist.size() / 2;
                              int distance1 =
-                                     stringDistance(res1.track.title, title) + stringDistance(res1.track.artist, artist) / 2;
+                                     stringDistance(res1.track.title, title) +
+                                     stringDistance(res1.track.artist, artist) / 2;
                              int distance2 =
-                                     stringDistance(res2.track.title, title) + stringDistance(res2.track.artist, artist) / 2;
+                                     stringDistance(res2.track.title, title) +
+                                     stringDistance(res2.track.artist, artist) / 2;
                              double score1 = 1 - double(distance1) / length;
                              double score2 = 1 - double(distance2) / length;
-                             if (std::any_of(res1.lyrics.begin(), res1.lyrics.end(), [](CLyricItem item){return !item.translation.empty();}))
+                             if (std::any_of(res1.lyrics.begin(), res1.lyrics.end(),
+                                             [](CLyricItem item) { return !item.translation.empty(); }))
                                  score1 += 0.2;
-                             if (std::any_of(res2.lyrics.begin(), res2.lyrics.end(), [](CLyricItem item){return !item.translation.empty();}))
+                             if (std::any_of(res2.lyrics.begin(), res2.lyrics.end(),
+                                             [](CLyricItem item) { return !item.translation.empty(); }))
                                  score2 += 0.2;
-                             if (std::any_of(res1.lyrics.begin(), res1.lyrics.end(), [](CLyricItem item){return !item.timecodes.empty();}))
+                             if (std::any_of(res1.lyrics.begin(), res1.lyrics.end(),
+                                             [](CLyricItem item) { return !item.timecodes.empty(); }))
                                  score1 += 0.1;
-                             if (std::any_of(res2.lyrics.begin(), res2.lyrics.end(), [](CLyricItem item){return !item.timecodes.empty();}))
+                             if (std::any_of(res2.lyrics.begin(), res2.lyrics.end(),
+                                             [](CLyricItem item) { return !item.timecodes.empty(); }))
                                  score2 += 0.1;
+                             if (!res1.isValid())
+                                 score1 -= 1;
+                             if (!res2.isValid())
+                                 score2 -= 1;
                              return score1 > score2;
                          });
 
-        emit searchResultSignal(std::move(lyrics));
+        if (searchWindow)
+                emit searchResultSignal(std::move(lyrics));
     });
     thread.detach();
 }

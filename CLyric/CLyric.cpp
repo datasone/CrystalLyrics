@@ -16,10 +16,35 @@
 #include <utility>
 #include <algorithm>
 
+namespace {
+    inline string normalizeFileName(string name) {
+        for (auto& c: name) {
+            if (static_cast<unsigned char>(c) > 127) {
+                // Non-Ascii char
+                continue;
+            }
+            switch (c) {
+                case '/':
+                case '\\':
+                case '?':
+                case '%':
+                case '*':
+                case ':':
+                case '|':
+                case '"':
+                case '<':
+                case '>':
+                    c = ' ';
+            }
+        }
+        return name;
+    }
+}
+
 CLyricItem::CLyricItem(const std::vector<string>& lyricLines, LyricStyle style) {
     for (const string& lyricLine : lyricLines) {
         std::regex linePattern(R"((\[.*?\])+(.*))");
-        std::regex timeTagPattern(R"(\[(\d{2}):(\d{2}).(\d{2,3})\])");
+        std::regex timeTagPattern(R"(\[(\d{2})?:?(\d{2,3}):(\d{2})\.?(\d{1,3})?\])");
         std::regex wordTagPattern(R"(\[(\w+)\])");
 
         string lineContent;
@@ -31,14 +56,34 @@ CLyricItem::CLyricItem(const std::vector<string>& lyricLines, LyricStyle style) 
         std::smatch timeTagMatch;
         if (style != LyricStyle::KugouStyle) {
             if (std::regex_search(lyricLine, timeTagMatch, timeTagPattern)) {
-                int minuteTime = std::stoi(timeTagMatch.str(1));
-                int secondTime = std::stoi(timeTagMatch.str(2));
-                int millisecondTime = std::stoi(timeTagMatch.str(3));
+                int hourTime = 0;
+                try {
+                    hourTime = std::stoi(timeTagMatch.str(1));
+                } catch (std::invalid_argument& e) {}
+                int minuteTime = std::stoi(timeTagMatch.str(2));
+                int secondTime = std::stoi(timeTagMatch.str(3));
+                int millisecondTime = 0;
+                const string& millisecondString = timeTagMatch.str(4);
+                try {
+                    millisecondTime = std::stoi(millisecondString);
+                } catch (std::invalid_argument& e) {}
 
-                if (timeTagMatch.str(3).length() == 2)
-                    millisecondTime *= 10;
+                switch (millisecondString.length()) {
+                    case 1:
+                        millisecondTime *= 100;
+                        break;
+                    case 2:
+                        millisecondTime *= 10;
+                        break;
+                    default:;
+                }
 
-                startTime = minuteTime * 60000 + secondTime * 1000 + millisecondTime;
+                startTime = hourTime * 60 * 60 * 1000 + minuteTime * 60 * 1000 + secondTime * 1000 + millisecondTime;
+
+                if (secondTime >= 60) { // some mm:ss:ms format
+                    startTime += secondTime;
+                }
+
             } else continue;
         } else {
             std::regex KugouTimeTagPattern(R"(\[(\d+?),(\d+?)\])");
@@ -183,7 +228,7 @@ CLyric::CLyric(string lyricContent, LyricStyle style) {
 
         if (tags.size() == 1) {
             const string& tag = tags[0];
-            if (isdigit(tag[0])) {
+            if (std::isdigit(static_cast<unsigned char>(tag[0]))) { // Signed char UB
                 linesMap.insert(std::pair<string, string>(tag, "[" + tag + "]" + line));
             } else {
                 if (tag == "ti") {
@@ -215,7 +260,7 @@ CLyric::CLyric(string lyricContent, LyricStyle style) {
                     }
 
                     for (const string& previousTag: previousTags) {
-                        if (isdigit(previousTag[0]))
+                        if (std::isdigit(static_cast<unsigned char>(previousTag[0])))
                             linesMap.insert(
                                     std::pair<string, string>(previousTag, "[" + previousTag + "]" + "[tr]" + content));
                     }
@@ -223,14 +268,14 @@ CLyric::CLyric(string lyricContent, LyricStyle style) {
             }
         } else {
             for (auto& tag: tags) {
-                if (!isdigit(tag[0])) {
+                if (!std::isdigit(static_cast<unsigned char>(tag[0]))) {
                     string prepend = "[";
                     prepend.append(tag).append("]").append(content);
                     content = prepend;
                 }
             }
             for (auto& tag: tags) {
-                if (isdigit(tag[0])) {
+                if (std::isdigit(static_cast<unsigned char>(tag[0]))) {
                     std::ostringstream lineStream;
                     lineStream << "[" << tag << "]" << content;
                     linesMap.insert(std::pair<string, string>(tag, lineStream.str()));
@@ -248,9 +293,14 @@ CLyric::CLyric(string lyricContent, LyricStyle style) {
         }
         lyrics.emplace_back(linesWithSameTag, style);
     }
+
+    std::stable_sort(lyrics.begin(), lyrics.end(),
+                     [](const CLyricItem& item1, const CLyricItem& item2) {
+                         return item1.startTime < item2.startTime;
+                     });
 }
 
-string CLyric::filename() {
+string CLyric::filename() const {
     return filename(track.title, track.album, track.artist);
 }
 
@@ -258,26 +308,7 @@ string CLyric::filename(const string& title, const string& album, const string& 
     std::ostringstream stringStream;
     stringStream << title << " - " << artist << " - " << album << ".clrc";
     string filename = stringStream.str();
-    for (auto& c: filename) {
-        if (static_cast<unsigned char>(c) > 127) {
-            // Non-Ascii char
-            continue;
-        }
-        switch (c) {
-            case '/':
-            case '\\':
-            case '?':
-            case '%':
-            case '*':
-            case ':':
-            case '|':
-            case '"':
-            case '<':
-            case '>':
-                c = ' ';
-        }
-    }
-    return filename;
+    return normalizeFileName(filename);
 }
 
 void CLyric::saveToFile(const string& saveDirectoryPath) {
@@ -335,6 +366,14 @@ CLyric CLyricSearch::fetchCLyric(const string& title, const string& album, const
         }
     }
 
+    // Check Album Instrumental
+    std::ifstream albumFlagFile(
+            std::filesystem::u8path(saveDirectoryPath + "/" + normalizeFileName(album + ".instrumental")));
+    if (albumFlagFile.is_open()) {
+        CLyric instrumentalLyric(Track(title, album, artist, "", "", duration, true), std::vector<CLyricItem>());
+        return instrumentalLyric;
+    }
+
     std::function < void(std::vector<CLyric>) > callback = [this](std::vector<CLyric> lyrics) {
         this->appendResultCallback(std::move(lyrics));
     };
@@ -351,14 +390,22 @@ CLyric CLyricSearch::fetchCLyric(const string& title, const string& album, const
                                  stringDistance(res2.track.title, title) + stringDistance(res2.track.artist, artist) / 2;
                          double score1 = 1 - double(distance1) / length;
                          double score2 = 1 - double(distance2) / length;
-                         if (std::any_of(res1.lyrics.begin(), res1.lyrics.end(), [](CLyricItem item){return !item.translation.empty();}))
+                         if (std::any_of(res1.lyrics.begin(), res1.lyrics.end(),
+                                         [](CLyricItem item) { return !item.translation.empty(); }))
                              score1 += 0.2;
-                         if (std::any_of(res2.lyrics.begin(), res2.lyrics.end(), [](CLyricItem item){return !item.translation.empty();}))
+                         if (std::any_of(res2.lyrics.begin(), res2.lyrics.end(),
+                                         [](CLyricItem item) { return !item.translation.empty(); }))
                              score2 += 0.2;
-                         if (std::any_of(res1.lyrics.begin(), res1.lyrics.end(), [](CLyricItem item){return !item.timecodes.empty();}))
+                         if (std::any_of(res1.lyrics.begin(), res1.lyrics.end(),
+                                         [](CLyricItem item) { return !item.timecodes.empty(); }))
                              score1 += 0.1;
-                         if (std::any_of(res2.lyrics.begin(), res2.lyrics.end(), [](CLyricItem item){return !item.timecodes.empty();}))
+                         if (std::any_of(res2.lyrics.begin(), res2.lyrics.end(),
+                                         [](CLyricItem item) { return !item.timecodes.empty(); }))
                              score2 += 0.1;
+                         if (!res1.isValid())
+                             score1 -= 1;
+                         if (!res2.isValid())
+                             score2 -= 1;
                          return score1 > score2;
                      });
 

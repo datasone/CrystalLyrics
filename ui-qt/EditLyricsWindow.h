@@ -16,8 +16,12 @@ QT_END_NAMESPACE
 class TrayIcon;
 
 class EditLyricsWindow : public QMainWindow {
+Q_OBJECT
 private slots:
+
     void autoExtractTranslate();
+
+    void adjustTime();
 
     void saveLyrics();
 

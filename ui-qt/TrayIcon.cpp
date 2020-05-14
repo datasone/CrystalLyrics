@@ -8,6 +8,7 @@
 
 #include <thread>
 #include <QApplication>
+#include <QScreen>
 #include <QDir>
 #include <QMessageBox>
 #include <QLocalSocket>
@@ -36,35 +37,40 @@ TrayIcon::TrayIcon() {
     connect(timer, &QTimer::timeout, this, &TrayIcon::timerTimeout);
 
     trayIcon = new QSystemTrayIcon(QIcon(":/image/icon.png"));
-    menu = new QMenu();
+    mainMenu = new QMenu();
 
     searchLyricAction = new QAction("Search Lyrics", nullptr);
-    markAsInstrumentalAction = new QAction("Mark Current Track as Instrumental", nullptr);
+    markTrackAsInstrumentalAction = new QAction("Mark Current Track as Instrumental", nullptr);
+    markAlbumAsInstrumentalAction = new QAction("Mark Current Album as Instrumental", nullptr);
     loadLocalLyricFileAction = new QAction("Load Local Lyric File", nullptr);
     markAsWrongAction = new QAction("Current Lyric is Wrong", nullptr);
     lyricsWindowAction = new QAction("Show Lyrics Window", nullptr);
+    desktopLyricsWindowAction = new QAction("Reshow Desktop Lyrics Window", nullptr);
     editLyricsAction = new QAction("Edit Lyrics", nullptr);
     settingsAction = new QAction("Settings", nullptr);
     exitAction = new QAction("Exit", nullptr);
 
-    menu->addAction(searchLyricAction);
-    menu->addAction(markAsInstrumentalAction);
-    menu->addAction(loadLocalLyricFileAction);
-    menu->addAction(markAsWrongAction);
-    menu->addAction(editLyricsAction);
-    menu->addSeparator();
-    menu->addAction(lyricsWindowAction);
-    menu->addSeparator();
-    menu->addAction(settingsAction);
-    menu->addAction(exitAction);
+    createMenu(true);
 
-    trayIcon->setContextMenu(menu);
+    trayIcon->setContextMenu(mainMenu);
     trayIcon->setVisible(true);
     trayIcon->show();
     trayIcon->setToolTip("CrystalLyrics");
 
+    QList<QScreen*> screens = QApplication::screens();
+            foreach(QScreen* screen, screens) {
+            connect(screen, &QScreen::geometryChanged, [this](const QRect&) { geometryChanged(); });
+        }
+
+    connect(qobject_cast<QGuiApplication*>(QApplication::instance()), &QApplication::screenRemoved, this,
+            &TrayIcon::screenChanged);
+    connect(qobject_cast<QGuiApplication*>(QApplication::instance()), &QApplication::screenAdded, this,
+            &TrayIcon::screenChanged);
+
     connect(lyricsWindowAction, &QAction::triggered, this, &TrayIcon::showLyricsWindow);
-    connect(markAsInstrumentalAction, &QAction::triggered, this, &TrayIcon::setInstrumental);
+    connect(desktopLyricsWindowAction, &QAction::triggered, this, &TrayIcon::reshowDesktopLyricsWindow);
+    connect(markTrackAsInstrumentalAction, &QAction::triggered, this, &TrayIcon::setTrackInstrumental);
+    connect(markAlbumAsInstrumentalAction, &QAction::triggered, this, &TrayIcon::setAlbumInstrumental);
     connect(searchLyricAction, &QAction::triggered, this, &TrayIcon::showSearchWindow);
     connect(loadLocalLyricFileAction, &QAction::triggered, this, &TrayIcon::loadLyricFile);
     connect(markAsWrongAction, &QAction::triggered, this, &TrayIcon::wrongLyric);
@@ -74,8 +80,9 @@ TrayIcon::TrayIcon() {
     connect(QApplication::instance(), &QApplication::aboutToQuit, this, &TrayIcon::cleanupOnQuit);
 
     connect(this, &TrayIcon::lyricFound, this, &TrayIcon::updateLyric, Qt::ConnectionType::QueuedConnection);
+    connect(this, &TrayIcon::clearLyricsSignal, this, &TrayIcon::clearLyrics, Qt::ConnectionType::QueuedConnection);
 
-    const auto desktopLyrics = settings.value("desktopLyrics", false).toBool();
+    desktopLyrics = settings.value("desktopLyrics", false).toBool();
     if (desktopLyrics) {
         desktopLyricsWindow = new DesktopLyricsWindow(nullptr, pcLyric, this);
         desktopLyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
@@ -171,7 +178,7 @@ void TrayIcon::parseSocketResult(QLocalSocket* socket) {
             if (parameter.right(1) != ')')
                 continue;
             parameter = parameter.left(parameter.size() - 1);
-            parameters.insert(parameter.split('=')[0], parameter.split('=')[1]);
+            parameters.insert(parameter.split('=')[0], parameter.split('=')[1].replace("\\[", "(").replace("\\]", ")"));
         }
     if (task == "setTrack") {
         if ((currentTrack.title == parameters["title"].toStdString()) &&
@@ -213,10 +220,14 @@ void TrayIcon::closeSocket(QLocalSocket* socket, const char* message) {
 }
 
 void TrayIcon::timerTimeout() {
-    if (!isPlaying || pcLyric->track.instrumental)
+    if (!isPlaying || !pcLyric || pcLyric->track.instrumental)
         return;
 
-    currentLyric = &pcLyric->lyrics[++currentLine];
+    try {
+        currentLyric = &pcLyric->lyrics.at(++currentLine);
+    } catch (const std::out_of_range& e) {
+        return;
+    }
 
     if (desktopLyricsWindow)
         desktopLyricsWindow->setLine(currentLine);
@@ -245,7 +256,13 @@ void TrayIcon::resume() {
     if (!isPlaying) {
         eTimer->start();
         if (desktopLyricsWindow) {
-            desktopLyricsWindow->resume();
+            if (!currentTrack.instrumental && pcLyric && pcLyric->isValid())
+                desktopLyricsWindow->resume();
+            // Sometimes Windows just ignores the window's always on top
+        } else if (desktopLyrics) {
+            desktopLyricsWindow = new DesktopLyricsWindow(nullptr, pcLyric, this);
+            desktopLyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
+            desktopLyricsWindow->show();
         }
         isPlaying = true;
     }
@@ -258,8 +275,9 @@ void TrayIcon::updateLyric(const CLyric& lyric, bool manualSearch) {
     cLyric = lyric;
     pcLyric = &cLyric;
 
+    currentTrack.instrumental = cLyric.track.instrumental;
+
     if (cLyric.track.source != "LocalFile") {
-        currentTrack.instrumental = cLyric.track.instrumental;
         cLyric.track = currentTrack;
         cLyric.saveToFile(appDataPath.toStdString());
     }
@@ -305,7 +323,7 @@ void TrayIcon::updateTime(int position, bool playing) {
         return;
     }
 
-    if (!pcLyric) {
+    if (!pcLyric || !pcLyric->isValid()) {
         return;
     }
 
@@ -316,6 +334,14 @@ void TrayIcon::updateTime(int position, bool playing) {
         eTimer->start();
     }
 
+    if (pcLyric->lyrics.size() == 1) {
+        currentLine = 0;
+        if (desktopLyricsWindow)
+            desktopLyricsWindow->setLine(currentLine, position - pcLyric->lyrics[currentLine].startTime);
+        if (lyricsWindow)
+            lyricsWindow->activateLine(currentLine);
+        return;
+    }
 
     for (int i = 0; i < pcLyric->lyrics.size() - 2;) {
         if (pcLyric->lyrics[++i].startTime > position) {
@@ -338,19 +364,13 @@ void TrayIcon::findLyric(const string& title, const string& album, const string&
     CLyric lyric = CLyricSearch(TrayIcon::openCCSimpleConverter).fetchCLyric(title, album, artist, duration, appDataPath.toStdString());
     if (lyric.isValid()) {
         emit lyricFound(lyric, false);
+    } else {
+        emit clearLyricsSignal();
     }
 }
 
 void TrayIcon::cleanupOnQuit() {
     trayIcon->hide();
-}
-
-void TrayIcon::setInstrumental() {
-    if (currentTrack.duration > 0) {
-        currentTrack.instrumental = true;
-        CLyric instrumentalLyric(currentTrack, std::vector<CLyricItem>());
-        updateLyric(instrumentalLyric, true);
-    }
 }
 
 void TrayIcon::loadLyricFile() {
@@ -375,5 +395,154 @@ void TrayIcon::wrongLyric() {
         desktopLyricsWindow->pause();
     if (lyricsWindow)
         lyricsWindow->clearLyrics();
-    pcLyric->deleteFile(appDataPath.toStdString());
+    if (pcLyric)
+        pcLyric->deleteFile(appDataPath.toStdString());
+    pcLyric = nullptr;
+}
+
+namespace {
+    inline string normalizeFileName(string name) {
+        for (auto& c: name) {
+            if (static_cast<unsigned char>(c) > 127) {
+                // Non-Ascii char
+                continue;
+            }
+            switch (c) {
+                case '/':
+                case '\\':
+                case '?':
+                case '%':
+                case '*':
+                case ':':
+                case '|':
+                case '"':
+                case '<':
+                case '>':
+                    c = ' ';
+            }
+        }
+        return name;
+    }
+}
+
+void TrayIcon::setTrackInstrumental() {
+    if (currentTrack.duration > 0) {
+        currentTrack.instrumental = true;
+        CLyric instrumentalLyric(currentTrack, std::vector<CLyricItem>());
+        updateLyric(instrumentalLyric, true);
+    }
+}
+
+void TrayIcon::setAlbumInstrumental() {
+    if (!currentTrack.album.empty()) {
+        QFile albumFile(
+                appDataPath + "/" + QString::fromStdString(normalizeFileName(currentTrack.album + ".instrumental")));
+        albumFile.open(QIODevice::WriteOnly);
+        albumFile.close();
+    }
+    setTrackInstrumental();
+}
+
+void TrayIcon::clearLyrics() {
+    if (desktopLyricsWindow)
+        desktopLyricsWindow->pause();
+    if (lyricsWindow)
+        lyricsWindow->clearLyrics();
+}
+
+void TrayIcon::reshowDesktopLyricsWindow() {
+    if (desktopLyricsWindow) {
+        desktopLyricsWindow->close();
+    }
+    if (desktopLyrics) {
+        desktopLyricsWindow = new DesktopLyricsWindow(nullptr, pcLyric, this);
+        desktopLyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
+        desktopLyricsWindow->show();
+    }
+}
+
+void TrayIcon::createMenu(bool firstTime) {
+    if (!firstTime) {
+        screenActions.clear();
+        actionGroup->deleteLater();
+        screenSubMenu->deleteLater();
+        mainMenu->deleteLater();
+    }
+
+    QList<QScreen*> screens = QApplication::screens();
+    int screenIndex = 0;
+
+    if (!chosenScreenName.isEmpty()) {
+        for (int i = 0; i < screens.size(); ++i) {
+            if (screens[i]->name() == chosenScreenName) {
+                screenIndex = i;
+                break;
+            }
+        }
+    } else {
+        chosenScreenName = screens[screenIndex]->name();
+    }
+
+    actionGroup = new QActionGroup(this);
+    screenSubMenu = new QMenu("Desktop Lyrics Screen");
+
+    for (int i = 0; i < screens.size(); ++i) {
+        auto* screenAction = new QAction(
+                QString("%1 %2x%3").arg(screens[i]->name()).arg(screens[i]->size().width()).arg(
+                        screens[i]->size().height()));
+        screenAction->setCheckable(true);
+        screenAction->setData(i);
+        connect(screenAction, &QAction::triggered, this, &TrayIcon::setDesktopLyricScreen);
+        screenActions.append(screenAction);
+        screenSubMenu->addAction(screenAction);
+        actionGroup->addAction(screenAction);
+    }
+
+    screenActions[screenIndex]->setChecked(true);
+
+    mainMenu = new QMenu();
+    mainMenu->addAction(searchLyricAction);
+    mainMenu->addAction(loadLocalLyricFileAction);
+    mainMenu->addAction(markAsWrongAction);
+    mainMenu->addAction(editLyricsAction);
+    mainMenu->addSeparator();
+    mainMenu->addAction(markTrackAsInstrumentalAction);
+    mainMenu->addAction(markAlbumAsInstrumentalAction);
+    mainMenu->addSeparator();
+    mainMenu->addAction(lyricsWindowAction);
+    mainMenu->addSeparator();
+    mainMenu->addMenu(screenSubMenu);
+    mainMenu->addAction(desktopLyricsWindowAction);
+    mainMenu->addSeparator();
+    mainMenu->addAction(settingsAction);
+    mainMenu->addAction(exitAction);
+}
+
+void TrayIcon::setDesktopLyricScreen() {
+    auto* action = qobject_cast<QAction*>(sender());
+    int screenIndex = action->data().toInt();
+    if (desktopLyricsWindow)
+        desktopLyricsWindow->resize(screenIndex);
+}
+
+void TrayIcon::screenChanged(QScreen* screen) {
+    QList<QScreen*> screens = QApplication::screens();
+            foreach(QScreen* screen, screens) {
+            screen->disconnect();
+            connect(screen, &QScreen::geometryChanged, [this](const QRect&) { geometryChanged(); });
+        }
+    geometryChanged();
+}
+
+void TrayIcon::geometryChanged() {
+    createMenu();
+    trayIcon->setContextMenu(mainMenu);
+    if (desktopLyricsWindow) {
+        QList<QScreen*> screens = QApplication::screens();
+        for (int i = 0; i < screens.size(); ++i)
+            if (screens[i]->name() == chosenScreenName) {
+                desktopLyricsWindow->resize(i);
+                break;
+            }
+    }
 }
