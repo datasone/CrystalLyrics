@@ -6,6 +6,7 @@
 #include "CLyricUtils.h"
 #include <algorithm>
 #include <zlib.h>
+#include <cstring>
 
 size_t utf8StringChars(const std::string& str) {
     size_t count = 0, i = 0;

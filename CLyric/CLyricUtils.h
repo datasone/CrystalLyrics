@@ -8,6 +8,8 @@
 
 #include <string>
 #include <vector>
+#include <numeric>
+#include <algorithm>
 
 size_t utf8StringChars(const std::string& str);
 

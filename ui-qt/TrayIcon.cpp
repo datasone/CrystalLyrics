@@ -15,11 +15,22 @@
 #include <QStandardPaths>
 #include <QFileDialog>
 
+#ifdef Q_OS_MAC
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 Q_DECLARE_METATYPE(CLyric)
 
 Q_DECLARE_METATYPE(std::vector<CLyric>)
 
-opencc::SimpleConverter TrayIcon::openCCSimpleConverter = opencc::SimpleConverter("opencc-files/t2s.json");
+#ifdef Q_OS_MAC
+CFURLRef url = (CFURLRef)CFAutorelease((CFURLRef)CFBundleCopyBundleURL(CFBundleGetMainBundle()));
+QString path = QUrl::fromCFURL(url).path() + "Contents/Resources/";
+#else
+QString path = "";
+#endif
+
+opencc::SimpleConverter TrayIcon::openCCSimpleConverter = opencc::SimpleConverter(path.toStdString() + "opencc-files/t2s.json");
 
 TrayIcon::TrayIcon() {
     appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -93,7 +104,14 @@ TrayIcon::TrayIcon() {
 
     server = new QLocalServer(this);
     QLocalServer::removeServer(ipcSocketName);
-    if (!server->listen(ipcSocketName)) {
+    QFile::remove("/tmp/" + ipcSocketName);
+    if (!server->listen(
+        #ifdef Q_OS_MAC
+            "/tmp/" + ipcSocketName
+        #else
+            ipcSocketName
+        #endif
+            )) {
         QMessageBox msgBox(QMessageBox::Critical, "CrystalLyrics", "Unable to setup IPC socket.\nProgram will exit.",
                            QMessageBox::Ok);
         QObject::connect(&msgBox, &QMessageBox::finished, [=]([[maybe_unused]] int i) { QApplication::quit(); });

@@ -34,7 +34,13 @@ DesktopLyricsWindow::DesktopLyricsWindow(QWidget* parent, CLyric* lyric, TrayIco
     conversionTCSC = settings.value("conversionTCSC", false).toBool();
 
     this->setAttribute(Qt::WA_TransparentForMouseEvents);
-    this->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    this->setWindowFlags(
+        #ifdef Q_OS_MAC
+            Qt::Window |
+        #else
+            Qt::Tool |
+        #endif
+            Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
 
     this->resize();
@@ -102,6 +108,13 @@ void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
         pause();
         return;
     }
+
+#ifdef Q_OS_MAC
+    hide();
+    show();
+    // A strange problem, some text won't be cleared (displayed in darker color, maybe caused by transparency)
+    // when the app is not in focus in macOS. A simple hide and show fixes it.
+#endif
 
     if (currentLine < cLyric->lyrics.size() - 1) {
         CLyricItem* currentLyric = &cLyric->lyrics[currentLine], * nextLyric = &cLyric->lyrics[currentLine + 1];
