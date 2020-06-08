@@ -6,6 +6,8 @@
 #include "TrayIcon.h"
 #include "utils.h"
 
+#include <CLyric/CLyricSearch.h>
+
 #include <thread>
 #include <QApplication>
 #include <QScreen>
@@ -15,7 +17,7 @@
 #include <QStandardPaths>
 #include <QFileDialog>
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
@@ -23,7 +25,7 @@ Q_DECLARE_METATYPE(CLyric)
 
 Q_DECLARE_METATYPE(std::vector<CLyric>)
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 CFURLRef url = (CFURLRef)CFAutorelease((CFURLRef)CFBundleCopyBundleURL(CFBundleGetMainBundle()));
 QString path = QUrl::fromCFURL(url).path() + "Contents/Resources/";
 #else
@@ -106,7 +108,7 @@ TrayIcon::TrayIcon() {
     QLocalServer::removeServer(ipcSocketName);
     QFile::remove("/tmp/" + ipcSocketName);
     if (!server->listen(
-        #ifdef Q_OS_MAC
+        #ifdef Q_OS_MACOS
             "/tmp/" + ipcSocketName
         #else
             ipcSocketName
@@ -128,6 +130,8 @@ void TrayIcon::showLyricsWindow() {
         lyricsWindow = new LyricsWindow(nullptr, pcLyric, this);
         lyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
         lyricsWindow->show();
+        lyricsWindow->activateWindow();
+        lyricsWindow->raise();
     } else {
         lyricsWindow->activateWindow();
     }
@@ -139,6 +143,8 @@ void TrayIcon::showSearchWindow() {
                                         nullptr);
         searchWindow->setAttribute(Qt::WA_DeleteOnClose);
         searchWindow->show();
+        searchWindow->activateWindow();
+        searchWindow->raise();
     } else {
         searchWindow->activateWindow();
     }
@@ -149,6 +155,8 @@ void TrayIcon::showSettingsWindow() {
         settingsWindow = new SettingsWindow();
         settingsWindow->setAttribute(Qt::WA_DeleteOnClose);
         settingsWindow->show();
+        settingsWindow->activateWindow();
+        settingsWindow->raise();
     } else {
         settingsWindow->activateWindow();
     }
@@ -159,6 +167,8 @@ void TrayIcon::showEditLyricsWindow() {
         editLyricsWindow = new EditLyricsWindow(nullptr, this);
         editLyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
         editLyricsWindow->show();
+        editLyricsWindow->activateWindow();
+        editLyricsWindow->raise();
     } else {
         editLyricsWindow->activateWindow();
     }

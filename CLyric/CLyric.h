@@ -13,8 +13,6 @@
 
 #include <opencc/opencc.h>
 
-class CLyricProvider;
-
 using std::string;
 
 enum LyricStyle {
@@ -98,22 +96,6 @@ public:
     void mergeTranslation(const CLyric& trans);
 
     static string filename(const string& title, const string& album, const string& artist);
-};
-
-class CLyricSearch {
-    std::vector<CLyric> results;
-
-    void appendResultCallback(std::vector<CLyric> lyrics);
-
-    CLyricProvider* providerList[6]{};
-
-public:
-    explicit CLyricSearch(opencc::SimpleConverter& converter);
-
-    CLyric fetchCLyric(const string& title, const string& album, const string& artist, int duration,
-                       const string& saveDirectoryPath);
-
-    std::vector<CLyric> searchCLyric(const string& title, const string& artist, int duration);
 };
 
 #endif //CRYSTALLYRICS_CLYRIC_H

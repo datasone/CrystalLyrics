@@ -6,13 +6,13 @@
 #ifndef CRYSTALLYRICS_TRAYICON_H
 #define CRYSTALLYRICS_TRAYICON_H
 
-#include "CLyric.h"
 #include "LyricsWindow.h"
 #include "SearchWindow.h"
 #include "SettingsWindow.h"
 #include "DesktopLyricsWindow.h"
 #include "EditLyricsWindow.h"
 
+#include <CLyric/CLyric.h>
 #include <QtWidgets/QSystemTrayIcon>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QAction>

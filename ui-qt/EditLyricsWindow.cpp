@@ -30,8 +30,13 @@ EditLyricsWindow::~EditLyricsWindow() {
 
 void EditLyricsWindow::autoExtractTranslate() {
     ui->lyricsText->setPlainText(
-            ui->lyricsText->toPlainText().replace(QRegularExpression(R"(^(\[.*\])(.*) *\/ *(.*)$)", QRegularExpression::MultilineOption),
-                                                  R"(\1\2
+            ui->lyricsText->toPlainText().replace(QRegularExpression(R"(^(\[.*\])(.*) *\/ *(.*)$)",
+                                                                     QRegularExpression::MultilineOption),R"(\1\2
+\1[tr]\3)")
+    );
+    ui->lyricsText->setPlainText(
+            ui->lyricsText->toPlainText().replace(QRegularExpression(R"(^(\[.*\])(.*) *<(.*)>$)",
+                                                                     QRegularExpression::MultilineOption),R"(\1\2
 \1[tr]\3)")
     );
 }

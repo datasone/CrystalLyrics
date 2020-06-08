@@ -16,17 +16,9 @@
 
 using nlohmann::json;
 
-CURLSH* CLyricProvider::curlShareHandle = nullptr;
-
 CLyricProvider::CLyricProvider() {
     curlHandle = curl_easy_init();
 
-    if (!curlShareHandle) {
-        curlShareHandle = curl_share_init();
-        curl_share_setopt(curlShareHandle, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS | CURL_LOCK_DATA_SSL_SESSION);
-    }
-
-    curl_easy_setopt(curlHandle, CURLOPT_SHARE, curlShareHandle);
     curl_easy_setopt(curlHandle, CURLOPT_NOSIGNAL, 1);
     curl_easy_setopt(curlHandle, CURLOPT_TIMEOUT, 10);
     curl_easy_setopt(curlHandle, CURLOPT_CONNECTTIMEOUT, 10);

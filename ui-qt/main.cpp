@@ -4,7 +4,7 @@
 
 #include <QApplication>
 
-// TODO: Lyric offset
+// TODO: Lyric offset, Kana
 int main(int argc, char* argv[]) {
     RunGuard guard("DzHEvHYGGC");
     if (!guard.tryToRun())

@@ -35,7 +35,7 @@ DesktopLyricsWindow::DesktopLyricsWindow(QWidget* parent, CLyric* lyric, TrayIco
 
     this->setAttribute(Qt::WA_TransparentForMouseEvents);
     this->setWindowFlags(
-        #ifdef Q_OS_MAC
+        #ifdef Q_OS_MACOS
             Qt::Window |
         #else
             Qt::Tool |
@@ -109,9 +109,14 @@ void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
         return;
     }
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
+    QWidget* focusWidget = QApplication::focusWidget();
     hide();
     show();
+    if (focusWidget) {
+        focusWidget->activateWindow();
+        focusWidget->raise();
+    }
     // A strange problem, some text won't be cleared (displayed in darker color, maybe caused by transparency)
     // when the app is not in focus in macOS. A simple hide and show fixes it.
 #endif

@@ -11,7 +11,7 @@
 #include "ui-qt/utils.h"
 #include "TrayIcon.h"
 
-// TODO: Font Shadow, Pause Handling
+// TODO: Font Shadow
 
 CLyricLabel::CLyricLabel(QWidget* parent, const QFont& font, QColor color, QColor playedColor, CLyricItem* item,
                          bool firstLine)

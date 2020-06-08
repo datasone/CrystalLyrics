@@ -6,6 +6,7 @@
 #include <thread>
 #include <QTimer>
 #include <QNetworkReply>
+#include <CLyric/CLyricSearch.h>
 #include <CLyric/CLyricUtils.h>
 
 #include "CLyric.h"
@@ -32,6 +33,8 @@ SearchWindow::SearchWindow(const string& title, const string& artist, int durati
     ui->tableWidget->horizontalHeader()->setHighlightSections(false);
     ui->tableWidget->verticalHeader()->setVisible(false);
 
+    connect(ui->titleEdit, &QLineEdit::returnPressed, this, &SearchWindow::searchLyrics);
+    connect(ui->artistEdit, &QLineEdit::returnPressed, this, &SearchWindow::searchLyrics);
     connect(ui->searchButton, &QPushButton::clicked, this, &SearchWindow::searchLyrics);
     connect(ui->tableWidget, &QTableWidget::itemClicked, this, &SearchWindow::itemClicked);
     connect(ui->tableWidget, &QTableWidget::itemDoubleClicked, this, &SearchWindow::itemDoubleClicked);

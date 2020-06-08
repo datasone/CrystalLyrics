@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
+
+if (APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Minimum OS X deployment version")
+endif()
+
 project(CrystalLyrics)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -29,6 +34,7 @@ else ()
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    add_link_options("-L/usr/local/lib")
     add_link_options("-L/usr/local/opt/llvm/lib")
     add_link_options("-Wl,-rpath,/usr/local/opt/llvm/lib")
 endif()

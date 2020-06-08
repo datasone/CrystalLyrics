@@ -19,15 +19,13 @@ protected:
     CURL* curlHandle;
     string response;
 
-    static CURLSH* curlShareHandle;
-
     CLyricProvider();
-
-    ~CLyricProvider();
 
     static size_t storeCURLResponse(void* buffer, size_t size, size_t nmemb, void* userp);
 
 public:
+    virtual ~CLyricProvider();
+
     void normalizeName(string& str, bool isHttpParam = false);
 
     string normalizeName(const string& str, bool isHttpParam = false);
