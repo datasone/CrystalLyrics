@@ -4,6 +4,7 @@
 //
 
 #include <QPainter>
+#include <QPainterPath>
 #include <QVBoxLayout>
 #include <QMouseEvent>
 #include <QScrollBar>

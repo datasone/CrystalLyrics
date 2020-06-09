@@ -80,9 +80,11 @@ target_link_libraries(CrystalLyrics PRIVATE Qt5::Core Qt5::Widgets Qt5::Network 
 if (APPLE)
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         add_custom_command(TARGET CrystalLyrics POST_BUILD
-                COMMAND /usr/local/opt/qt/bin/macdeployqt ${CMAKE_CURRENT_BINARY_DIR}/CrystalLyrics.app -use-debug-libs)
+                COMMAND /opt/Qt/current/bin/macdeployqt ${CMAKE_CURRENT_BINARY_DIR}/CrystalLyrics.app -use-debug-libs)
     else()
         add_custom_command(TARGET CrystalLyrics POST_BUILD
-                COMMAND /usr/local/opt/qt/bin/macdeployqt ${CMAKE_CURRENT_BINARY_DIR}/CrystalLyrics.app)
+                COMMAND /opt/Qt/current/bin/macdeployqt ${CMAKE_CURRENT_BINARY_DIR}/CrystalLyrics.app)
     endif()
+    add_custom_command(TARGET CrystalLyrics POST_BUILD
+            COMMAND /bin/cp -R ${CMAKE_SOURCE_DIR}/opencc-res ${CMAKE_CURRENT_BINARY_DIR}/CrystalLyrics.app/Contents/Resources/opencc-files)
 endif()

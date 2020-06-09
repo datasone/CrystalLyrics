@@ -4,9 +4,10 @@
 //
 
 #include <QApplication>
-#include <QtGui/QScreen>
-#include <QtCore/QPropertyAnimation>
-#include <QtGui/QPainter>
+#include <QScreen>
+#include <QPropertyAnimation>
+#include <QPainter>
+#include <QPainterPath>
 #include <QMouseEvent>
 #include "DesktopLyricsWindow.h"
 #include "TrayIcon.h"
