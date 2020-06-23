@@ -517,7 +517,7 @@ Kugou::KugouResult::KugouResult(string title, string artist, string id, string a
 
 void QQMusic::searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) {
     string url = "http://c.y.qq.com/soso/fcgi-bin/client_search_cp";
-    url.append("?w=").append(normalizeName(track.title + "+" + track.artist), true);
+    url.append("?w=").append(normalizeName(track.title + "+" + track.artist, true));
     curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
     response.clear();
     auto result = curl_easy_perform(curlHandle);
@@ -525,6 +525,8 @@ void QQMusic::searchLyrics(const Track& track, std::function<void(std::vector<CL
     try {
         std::vector<CLyric> lyrics;
         std::vector<QQMusicResult> results;
+
+        response = response.substr(9, response.length() - 10); // remove "callback( {...} )"
         auto searchResult = json::parse(response);
 
         for (const auto& searchItem: searchResult["data"]["song"]["list"]) {
@@ -548,7 +550,12 @@ void QQMusic::searchLyrics(const Track& track, std::function<void(std::vector<CL
             response.clear();
             curl_easy_perform(curlHandle);
 
+            response = response.substr(18, response.length() - 19); // remove "(MusicJsonCallback {...} )"
             auto lyricResponse = json::parse(response);
+
+            if (lyricResponse["lyric"].is_null())
+                continue;
+
             string lyric = lyricResponse["lyric"];
 
             if (lyric.empty())
