@@ -7,7 +7,6 @@
 #include "CLyricUtils.h"
 #include "Base64.h"
 #include <nlohmann/json.hpp>
-#include <regex>
 #include <sstream>
 #include <iomanip>
 #include <tinyxml2.h>
@@ -567,6 +566,7 @@ void QQMusic::searchLyrics(const Track& track, std::function<void(std::vector<CL
 
             string decodedLyric, decodedTrans;
             macaron::Base64::Decode(lyric, decodedLyric);
+            unescapeXmlSpeChars(decodedLyric);
             CLyric cLyric = CLyric(decodedLyric,
                                    Track(result.title, result.album, result.artist, coverImageUrl, "QQMusic",
                                          result.duration), LyricStyle::CLrcStyle);
@@ -574,6 +574,7 @@ void QQMusic::searchLyrics(const Track& track, std::function<void(std::vector<CL
             if (!lyricResponse["trans"].is_null()) {
                 string trans = lyricResponse["trans"];
                 macaron::Base64::Decode(trans, decodedTrans);
+                unescapeXmlSpeChars(decodedTrans);
                 CLyric transLyric = CLyric(decodedTrans, LyricStyle::CLrcStyle);
                 cLyric.mergeTranslation(transLyric);
             }

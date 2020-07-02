@@ -13,6 +13,8 @@
 #include <opencc/opencc.h>
 #include <cstdint>
 #include <utility>
+#include <map>
+#include <regex>
 
 class CLyricProvider {
 protected:
@@ -118,6 +120,19 @@ class QQMusic : public CLyricProvider {
         string title, artist, album, songmid;
         int albumid, duration, distance;
     };
+
+    std::map<string, string> xmlSpecialChars = {
+            { "&amp;", "&" },
+            { "&lt;", "<" },
+            { "&gt;", ">" },
+            { "&quot;", "\"" },
+            { "&apos;", "'" }
+    };
+
+    void unescapeXmlSpeChars(string& str) {
+        for (auto const& [find, replace]: xmlSpecialChars)
+            str = std::regex_replace(str, std::regex(find), replace);
+    }
 
 //    opencc::SimpleConverter& converter;
 
