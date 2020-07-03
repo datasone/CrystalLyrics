@@ -15,12 +15,16 @@
 
 class TrayIcon;
 
+using cLyric::CLyric;
+
 class DesktopLyricsWindow : public QWidget {
 Q_OBJECT
 public:
     explicit DesktopLyricsWindow(QWidget* parent = nullptr, CLyric* lyric = nullptr, TrayIcon* trayIcon = nullptr);
 
     void resize(int screenIndex = 0);
+
+    void clearLyrics();
 
 private:
     QVBoxLayout* layout;
@@ -34,14 +38,6 @@ private:
     QColor bgColor, lyricsTextColor, lyricsTextPlayedColor;
     bool doubleLineDisplay, conversionTCSC, contentConversionTCSC = false, translationConversionTCSC = false;
     QFont desktopFont;
-
-signals:
-
-    void updateFirstLineLyrics(CLyricItem* item, bool firstLine, bool convertTCSC);
-
-    void updateSecondLineLyrics(CLyricItem* item, bool firstLine, bool convertTCSC);
-
-    void updateFirstLineTime(int timeInLine);
 
 public slots:
 

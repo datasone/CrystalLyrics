@@ -8,21 +8,24 @@
 #include "CLyric.h"
 #include "CLyricProvider.h"
 
-class CLyricSearch {
-    std::vector<CLyric> results;
+namespace cLyric {
 
-    void appendResultCallback(std::vector<CLyric> lyrics);
+    class CLyricSearch {
+        std::vector<CLyric> results;
 
-    std::unique_ptr<CLyricProvider> providerList[6];
+        void appendResultCallback(std::vector<CLyric> lyrics);
 
-public:
-    explicit CLyricSearch(opencc::SimpleConverter& converter);
+        std::unique_ptr<CLyricProvider> providerList[6];
 
-    CLyric fetchCLyric(const string& title, const string& album, const string& artist, int duration,
-                       const string& saveDirectoryPath);
+    public:
+        explicit CLyricSearch(opencc::SimpleConverter &converter);
 
-    std::vector<CLyric> searchCLyric(const string& title, const string& artist, int duration);
-};
+        CLyric fetchCLyric(const std::string &title, const std::string &album, const std::string &artist, int duration,
+                           const std::string &saveDirectoryPath);
 
+        std::vector<CLyric> searchCLyric(const std::string &title, const std::string &artist, int duration);
+    };
+
+}
 
 #endif //CRYSTALLYRICS_CLYRICSEARCH_H

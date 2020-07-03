@@ -12,8 +12,6 @@
 #include "DesktopLyricsWindow.h"
 #include "TrayIcon.h"
 
-const int roundCornerRadius = 36;
-
 DesktopLyricsWindow::DesktopLyricsWindow(QWidget* parent, CLyric* lyric, TrayIcon* trayIcon)
         : QWidget(parent), cLyric(lyric), trayIcon(trayIcon) {
 
@@ -44,40 +42,15 @@ DesktopLyricsWindow::DesktopLyricsWindow(QWidget* parent, CLyric* lyric, TrayIco
             Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
 
-    this->resize();
-    this->setContentsMargins(50, 0, 50, 0);
-
     layout = new QVBoxLayout(this);
 
-    Qt::Alignment firstLineAlignment = Qt::AlignVCenter;
-    Qt::Alignment secondLineAlignment = Qt::AlignVCenter;
+    this->setContentsMargins(10, 10, 10, 10);
+    layout->setContentsMargins(0, 0, 0, 0);
 
-    switch (settings.value("firstLineAlignment", 1).toInt()) {
-        case 0:
-            firstLineAlignment |= Qt::AlignLeft;
-            break;
-        case 1:
-            firstLineAlignment |= Qt::AlignHCenter;
-            break;
-        case 2:
-            firstLineAlignment |= Qt::AlignRight;
-            break;
-    }
-
-    switch (settings.value("secondLineAlignment", 1).toInt()) {
-        case 0:
-            secondLineAlignment |= Qt::AlignLeft;
-            break;
-        case 1:
-            secondLineAlignment |= Qt::AlignHCenter;
-            break;
-        case 2:
-            secondLineAlignment |= Qt::AlignRight;
-            break;
-    }
+    Qt::Alignment firstLineAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
+    Qt::Alignment secondLineAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
 
     auto* startupItem = new CLyricItem("CrystalLyrics", 0);
-    auto* emptyItem = new CLyricItem("", 0);
 
     firstLine = new CLyricLabel(this, desktopFont, lyricsTextColor, lyricsTextPlayedColor, startupItem, true);
 
@@ -87,16 +60,14 @@ DesktopLyricsWindow::DesktopLyricsWindow(QWidget* parent, CLyric* lyric, TrayIco
     layout->addWidget(firstLine);
 
     if (doubleLineDisplay) {
-        secondLine = new CLyricLabel(this, desktopFont, lyricsTextColor, lyricsTextPlayedColor, emptyItem, false);
+        secondLine = new CLyricLabel(this, desktopFont, lyricsTextColor, lyricsTextPlayedColor, &cLyric::emptyCLyricItem, false);
         secondLine->setAlignment(secondLineAlignment);
         secondLine->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
         layout->addWidget(secondLine);
-        connect(this, &DesktopLyricsWindow::updateSecondLineLyrics, secondLine, &CLyricLabel::updateLyric);
     }
 
-    connect(this, &DesktopLyricsWindow::updateFirstLineLyrics, firstLine, &CLyricLabel::updateLyric);
-    connect(this, &DesktopLyricsWindow::updateFirstLineTime, firstLine, &CLyricLabel::updateTime);
+    this->resize(trayIcon->currentScreenIndex());
 }
 
 void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
@@ -125,24 +96,26 @@ void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
     if (currentLine < cLyric->lyrics.size() - 1) {
         CLyricItem* currentLyric = &cLyric->lyrics[currentLine], * nextLyric = &cLyric->lyrics[currentLine + 1];
 
-        emit updateFirstLineLyrics(currentLyric, true, contentConversionTCSC);
-        if (currentLyric->isDoubleLine()) {
-            emit updateSecondLineLyrics(currentLyric, false, translationConversionTCSC);
+        firstLine->updateLyric(currentLyric, true, contentConversionTCSC);
+        if (doubleLineDisplay && currentLyric->isDoubleLine()) {
+            secondLine->updateLyric(currentLyric, false, translationConversionTCSC);
         } else {
-            emit updateSecondLineLyrics(nextLyric, true, contentConversionTCSC);
+            secondLine->updateLyric(nextLyric, true, contentConversionTCSC);
         }
     } else {
         CLyricItem* currentLyric = &cLyric->lyrics[currentLine];
-        emit updateFirstLineLyrics(currentLyric, true, contentConversionTCSC);
-        if (currentLyric->isDoubleLine()) {
-            emit updateSecondLineLyrics(currentLyric, false, translationConversionTCSC);
+        firstLine->updateLyric(currentLyric, true, contentConversionTCSC);
+        if (doubleLineDisplay && currentLyric->isDoubleLine()) {
+            secondLine->updateLyric(currentLyric, false, translationConversionTCSC);
         } else {
-            emit updateSecondLineLyrics(new CLyricItem("", 0), true, false);
+            secondLine->updateLyric(new CLyricItem("", 0), true, false);
         }
     }
 
+    resize(trayIcon->currentScreenIndex());
+
     if (timeInLine != 0) {
-        emit updateFirstLineTime(timeInLine);
+        firstLine->updateTime(timeInLine);
     }
 
 }
@@ -164,8 +137,11 @@ void DesktopLyricsWindow::updateLyric(CLyric* lyric) {
 void DesktopLyricsWindow::paintEvent([[maybe_unused]] QPaintEvent* event) {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
+
+    QFontMetricsF metrics(desktopFont);
+
     QPainterPath path;
-    path.addRoundedRect(this->rect(), roundCornerRadius, roundCornerRadius);
+    path.addRoundedRect(this->rect(), metrics.height() / 2, metrics.height() / 2);
     painter.fillPath(path, bgColor);
 }
 
@@ -193,8 +169,29 @@ void DesktopLyricsWindow::resize(int screenIndex) {
     QScreen* screen = screens[screenIndex];
     const int screenWidth = screen->availableGeometry().width();
     const int screenHeight = screen->availableGeometry().height();
-    int fontHeight = QFontMetrics(desktopFont).height();
 
-    this->setFixedSize(screenWidth * 0.8, doubleLineDisplay ? fontHeight * 3 : fontHeight * 2);
-    this->move(screen->geometry().x() + screenWidth * 0.1, screen->geometry().y() + screenHeight - this->height() - 20);
+    this->resume();
+    if (firstLine->text.trimmed().isEmpty() && (doubleLineDisplay ? secondLine->text.trimmed().isEmpty() : true))
+        this->pause();
+
+    QFontMetricsF metrics(desktopFont);
+
+    int fontHeight = metrics.height();
+    int fontWidth;
+
+    if (doubleLineDisplay) {
+        fontWidth = std::max(metrics.horizontalAdvance(firstLine->text), metrics.horizontalAdvance(secondLine->text));
+    } else {
+        fontWidth = metrics.horizontalAdvance(firstLine->text);
+    }
+
+    this->setFixedSize(fontWidth + metrics.averageCharWidth() * 4 + layout->contentsMargins().left() * 2,
+            (doubleLineDisplay ? fontHeight * 3 : fontHeight * 2) + layout->contentsMargins().top() * 2);
+    this->move(screen->geometry().x() + (screenWidth - this->width()) / 2, screen->geometry().y() + screenHeight - this->height() - 20);
+}
+
+void DesktopLyricsWindow::clearLyrics() {
+    firstLine->updateLyric(&cLyric::emptyCLyricItem, false, false);
+    if (doubleLineDisplay)
+        secondLine->updateLyric(&cLyric::emptyCLyricItem, false, false);
 }

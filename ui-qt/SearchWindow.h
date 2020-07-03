@@ -34,7 +34,7 @@ private slots:
     void timeout();
 
 public:
-    SearchWindow(const string& title, const string& artist, int duration, TrayIcon* trayIcon,
+    SearchWindow(const std::string& title, const std::string& artist, int duration, TrayIcon* trayIcon,
                  QWidget* parent = nullptr);
 
     ~SearchWindow() override;

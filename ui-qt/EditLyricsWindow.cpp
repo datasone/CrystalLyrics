@@ -9,9 +9,11 @@
 
 #include <QMessageBox>
 
-EditLyricsWindow::EditLyricsWindow(QWidget* parent, TrayIcon* trayIcon) : QMainWindow(parent),
-                                                                          ui(new Ui::EditLyricsWindow),
-                                                                          trayIcon(trayIcon) {
+using cLyric::CLyric;
+using cLyric::LyricStyle;
+
+EditLyricsWindow::EditLyricsWindow(QWidget *parent, TrayIcon *trayIcon)
+        : QMainWindow(parent), ui(new Ui::EditLyricsWindow), trayIcon(trayIcon) {
 
     ui->setupUi(this);
 

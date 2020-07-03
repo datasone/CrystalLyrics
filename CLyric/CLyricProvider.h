@@ -6,7 +6,9 @@
 #ifndef CRYSTALLYRICS_CLYRICPROVIDER_H
 #define CRYSTALLYRICS_CLYRICPROVIDER_H
 
-#define NOMINMAX
+#ifdef Q_OS_WIN
+#define NOMINMAX // Eliminate Win32 min and max
+#endif
 
 #include "CLyric.h"
 #include <curl/curl.h>
@@ -16,147 +18,155 @@
 #include <map>
 #include <regex>
 
-class CLyricProvider {
-protected:
-    CURL* curlHandle;
-    string response;
+namespace cLyric {
 
-    CLyricProvider();
+    class CLyricProvider {
+    protected:
+        CURL *curlHandle;
+        std::string response;
 
-    static size_t storeCURLResponse(void* buffer, size_t size, size_t nmemb, void* userp);
+        CLyricProvider();
 
-public:
-    virtual ~CLyricProvider();
+        static size_t storeCURLResponse(void *buffer, size_t size, size_t nmemb, void *userp);
 
-    void normalizeName(string& str, bool isHttpParam = false);
+    public:
+        virtual ~CLyricProvider();
 
-    string normalizeName(const string& str, bool isHttpParam = false);
+        void normalizeName(std::string &str, bool isHttpParam = false);
 
-    virtual void searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) = 0;
-};
+        std::string normalizeName(const std::string &str, bool isHttpParam = false);
 
-class Gecimi : public CLyricProvider {
-
-public:
-    void searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
-};
-
-class TTPlayer : public CLyricProvider {
-    struct TTPlayerResult {
-        TTPlayerResult(string title, string artist, int id) : title(std::move(title)), artist(std::move(artist)),
-                                                              id(id), distance(INT_MAX) {}
-
-        TTPlayerResult(string title, string artist, int id, const string& targetTitle, const string& targetArtist);
-
-        string title, artist;
-        int id = 0, distance;
+        virtual void
+        searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) = 0;
     };
 
-    static string toUTF16LEHexString(const string& str);
+    class Gecimi : public CLyricProvider {
 
-    static int TTPlayerMagicCode(const string& artist, const string& title, unsigned int id);
-
-    opencc::SimpleConverter& converter;
-
-public:
-    TTPlayer(opencc::SimpleConverter& converter) : converter(converter) {}
-
-    void searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
-};
-
-class Xiami : public CLyricProvider {
-    struct XiamiResult {
-        XiamiResult(string title, string album, string artist, string coverImageUrl, string lyricUrl) : title(
-                std::move(title)), album(std::move(album)), artist(std::move(artist)), coverImageUrl(
-                std::move(coverImageUrl)), lyricUrl(std::move(lyricUrl)), distance(INT_MAX) {}
-
-        XiamiResult(string title, string album, string artist, string coverImageUrl, string lyricUrl,
-                    const string& targetTitle, const string& targetArtist);
-
-        string title, album, artist, coverImageUrl, lyricUrl;
-        int distance;
+    public:
+        void searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
     };
 
-public:
-    void searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
-};
+    class TTPlayer : public CLyricProvider {
+        struct TTPlayerResult {
+            TTPlayerResult(std::string title, std::string artist, int id) : title(std::move(title)),
+                                                                            artist(std::move(artist)),
+                                                                            id(id), distance(INT_MAX) {}
 
-class Kugou : public CLyricProvider {
-    struct KugouResult {
-        KugouResult(string title, string artist, string id, string accessKey, int duration) : title(std::move(title)),
-                                                                                              artist(std::move(artist)),
-                                                                                              id(std::move(id)),
-                                                                                              accessKey(std::move(
-                                                                                                      accessKey)),
-                                                                                              duration(duration),
-                                                                                              distance(INT_MAX) {}
+            TTPlayerResult(std::string title, std::string artist, int id, const std::string &targetTitle,
+                           const std::string &targetArtist);
 
-        KugouResult(string title, string artist, string id, string accessKey, int duration, const string& targetTitle,
-                    const string& targetArtist);
+            std::string title, artist;
+            int id = 0, distance;
+        };
 
-        string title, artist, id, accessKey;
-        int duration, distance;
+        static std::string toUTF16LEHexString(const std::string &str);
+
+        static int TTPlayerMagicCode(const std::string &artist, const std::string &title, unsigned int id);
+
+        opencc::SimpleConverter &converter;
+
+    public:
+        TTPlayer(opencc::SimpleConverter &converter) : converter(converter) {}
+
+        void searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
     };
 
-    static string decryptKrc(const string& krcString, bool base64Parse = false);
+    class Xiami : public CLyricProvider {
+        struct XiamiResult {
+            XiamiResult(std::string title, std::string album, std::string artist, std::string coverImageUrl,
+                        std::string lyricUrl) : title(std::move(title)),
+                                                album(std::move(album)), artist(std::move(artist)),
+                                                coverImageUrl(std::move(coverImageUrl)),
+                                                lyricUrl(std::move(lyricUrl)), distance(INT_MAX) {}
 
-public:
-    void searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
-};
+            XiamiResult(std::string title, std::string album, std::string artist, std::string coverImageUrl,
+                        std::string lyricUrl,
+                        const std::string &targetTitle, const std::string &targetArtist);
 
-class QQMusic : public CLyricProvider {
-    struct QQMusicResult {
-        QQMusicResult(string title, string artist, string album, string songmid, int albumid, int interval) : title(
-                std::move(title)), artist(std::move(artist)), album(std::move(album)), songmid(std::move(songmid)),
-                                                                                                              albumid(albumid),
-                                                                                                              duration(
-                                                                                                                      interval),
-                                                                                                              distance(
-                                                                                                                      INT_MAX) {}
+            std::string title, album, artist, coverImageUrl, lyricUrl;
+            int distance;
+        };
 
-        QQMusicResult(string title, string artist, string album, string songmid, int albumid, int interval,
-                      const string& targetTitle, const string& targetArtist);
-
-        string title, artist, album, songmid;
-        int albumid, duration, distance;
+    public:
+        void searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
     };
 
-    std::map<string, string> xmlSpecialChars = {
-            { "&amp;", "&" },
-            { "&lt;", "<" },
-            { "&gt;", ">" },
-            { "&quot;", "\"" },
-            { "&apos;", "'" }
+    class Kugou : public CLyricProvider {
+        struct KugouResult {
+            KugouResult(std::string title, std::string artist, std::string id, std::string accessKey,
+                        int duration) : title(std::move(title)), artist(std::move(artist)), id(std::move(id)),
+                                        accessKey(std::move(accessKey)), duration(duration), distance(INT_MAX) {}
+
+            KugouResult(std::string title, std::string artist, std::string id, std::string accessKey,
+                        int duration, const std::string &targetTitle, const std::string &targetArtist);
+
+            std::string title, artist, id, accessKey;
+            int duration, distance;
+        };
+
+        static std::string decryptKrc(const std::string &krcString, bool base64Parse = false);
+
+    public:
+        void searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
     };
 
-    void unescapeXmlSpeChars(string& str) {
-        for (auto const& [find, replace]: xmlSpecialChars)
-            str = std::regex_replace(str, std::regex(find), replace);
-    }
+    class QQMusic : public CLyricProvider {
+        struct QQMusicResult {
+            QQMusicResult(std::string title, std::string artist, std::string album, std::string songmid,
+                          int albumid, int interval) : title(std::move(title)), artist(std::move(artist)),
+                                                       album(std::move(album)), songmid(std::move(songmid)),
+                                                       albumid(albumid), duration(interval), distance(INT_MAX) {}
+
+            QQMusicResult(std::string title, std::string artist, std::string album, std::string songmid, int albumid,
+                          int interval, const std::string &targetTitle, const std::string &targetArtist);
+
+            std::string title, artist, album, songmid;
+            int albumid, duration, distance;
+        };
+
+        std::map<std::string, std::string> xmlSpecialChars = {
+                {"&amp;",  "&"},
+                {"&lt;",   "<"},
+                {"&gt;",   ">"},
+                {"&quot;", "\""},
+                {"&apos;", "'"}
+        };
+
+        void unescapeXmlSpeChars(std::string &str) {
+            for (auto const&[find, replace]: xmlSpecialChars)
+                str = std::regex_replace(str, std::regex(find), replace);
+        }
 
 //    opencc::SimpleConverter& converter;
 
-public:
+    public:
 //    QQMusic(opencc::SimpleConverter& converter) : converter(converter) {}
 
-    void searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
-};
-
-class Netease : public CLyricProvider {
-    struct NeteaseResult {
-        NeteaseResult(string title, string artist, string album, string coverImageUrl, int id, int duration) : title(
-                std::move(title)), artist(std::move(artist)), album(std::move(album)), coverImageUrl(
-                std::move(coverImageUrl)), id(id), duration(duration / 1000), distance(INT_MAX) {}
-
-        NeteaseResult(string title, string artist, string album, string coverImageUrl, int id, int duration,
-                      const string& targetTitle, const string& targetArtist);
-
-        string title, artist, album, coverImageUrl;
-        int id, duration, distance;
+        void searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
     };
 
-public:
-    void searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
-};
+    class Netease : public CLyricProvider {
+        struct NeteaseResult {
+            NeteaseResult(std::string title, std::string artist, std::string album,
+                          std::string coverImageUrl, int id, int duration) : title(std::move(title)),
+                                                                             artist(std::move(artist)),
+                                                                             album(std::move(album)),
+                                                                             coverImageUrl(std::move(coverImageUrl)),
+                                                                             id(id), duration(duration / 1000),
+                                                                             distance(INT_MAX) {}
+
+            NeteaseResult(std::string title, std::string artist, std::string album, std::string coverImageUrl, int id,
+                          int duration,
+                          const std::string &targetTitle, const std::string &targetArtist);
+
+            std::string title, artist, album, coverImageUrl;
+            int id, duration, distance;
+        };
+
+    public:
+        void searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
+    };
+
+}
 
 #endif //CRYSTALLYRICS_CLYRICPROVIDER_H

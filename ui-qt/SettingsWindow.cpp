@@ -23,14 +23,6 @@ SettingsWindow::SettingsWindow(QWidget* parent)
 
     // TODO: Notify other components on Save
 
-    connect(ui->desktopLyrics, &QCheckBox::toggled, this, &SettingsWindow::desktopLyricDisplayModeToggled);
-    connect(ui->lyricsDoubleLine, &QRadioButton::toggled, this, &SettingsWindow::desktopLyricDisplayModeToggled);
-    const QWidget* widgets[] = {ui->firstLineAlignmentLabel, ui->firstLineAlignment, ui->secondLineAlignmentLabel,
-                                ui->secondLineAlignment};
-    for (const QWidget* widget : widgets) {
-        connect(this, &SettingsWindow::doubleLineAlignmentEnabled, widget, &QWidget::setEnabled);
-    }
-
     connect(ui->fontSelect, &QPushButton::clicked, this, &SettingsWindow::selectFont);
 
     connect(ui->backgroundColor, &QPushButton::clicked, this, &SettingsWindow::selectColor);
@@ -55,12 +47,6 @@ SettingsWindow::SettingsWindow(QWidget* parent)
 
     auto doubleLineDisplay = settings.value("doubleLineDisplay", false);
     (doubleLineDisplay.toBool() ? ui->lyricsDoubleLine : ui->lyricsSingleLine)->setChecked(true);
-
-    auto firstLineAlignment = settings.value("firstLineAlignment", 1);
-    ui->firstLineAlignment->setCurrentIndex(firstLineAlignment.toInt());
-
-    auto secondLineAlignment = settings.value("secondLineAlignment", 1);
-    ui->secondLineAlignment->setCurrentIndex(secondLineAlignment.toInt());
 
     auto desktopFontFamily = settings.value("desktopFont/family");
     if (desktopFontFamily.isNull()) {
@@ -114,10 +100,6 @@ SettingsWindow::~SettingsWindow() {
     delete ui;
 }
 
-void SettingsWindow::desktopLyricDisplayModeToggled() {
-    emit doubleLineAlignmentEnabled(ui->desktopLyrics->isChecked() && ui->lyricsDoubleLine->isChecked());
-}
-
 void SettingsWindow::closeEvent(QCloseEvent* event) {
     if (event->spontaneous()) {
         const QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Settings",
@@ -161,9 +143,6 @@ void SettingsWindow::saveSettings() {
     settings.setValue("desktopLyrics", ui->desktopLyrics->isChecked());
 
     settings.setValue("doubleLineDisplay", ui->lyricsDoubleLine->isChecked());
-
-    settings.setValue("firstLineAlignment", ui->firstLineAlignment->currentIndex());
-    settings.setValue("secondLineAlignment", ui->secondLineAlignment->currentIndex());
 
     settings.setValue("desktopFont/family", desktopFont.family());
     settings.setValue("desktopFont/size", desktopFont.pointSize());

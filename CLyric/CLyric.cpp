@@ -15,13 +15,15 @@
 #include <utility>
 #include <algorithm>
 
-CLyricItem::CLyricItem(const std::vector<string>& lyricLines, LyricStyle style) {
-    for (const string& lyricLine : lyricLines) {
+using namespace cLyric;
+
+CLyricItem::CLyricItem(const std::vector<std::string>& lyricLines, LyricStyle style) {
+    for (const std::string& lyricLine : lyricLines) {
         std::regex linePattern(R"((\[.*?\])+(.*))");
         std::regex timeTagPattern(R"(\[(\d{2})?:?(\d{2,3}):(\d{2})\.?(\d{1,3})?\])");
         std::regex wordTagPattern(R"(\[(\w+)\])");
 
-        string lineContent;
+        std::string lineContent;
         std::smatch lineMatch;
         if (std::regex_match(lyricLine, lineMatch, linePattern)) {
             lineContent = lineMatch.str(2);
@@ -37,7 +39,7 @@ CLyricItem::CLyricItem(const std::vector<string>& lyricLines, LyricStyle style) 
                 int minuteTime = std::stoi(timeTagMatch.str(2));
                 int secondTime = std::stoi(timeTagMatch.str(3));
                 int millisecondTime = 0;
-                const string& millisecondString = timeTagMatch.str(4);
+                const std::string& millisecondString = timeTagMatch.str(4);
                 try {
                     millisecondTime = std::stoi(millisecondString);
                 } catch (std::invalid_argument& e) {}
@@ -72,9 +74,9 @@ CLyricItem::CLyricItem(const std::vector<string>& lyricLines, LyricStyle style) 
             if (wordTagMatch.str(1) == "tr") {
                 translation = lineContent;
             } else if (wordTagMatch.str(1) == "tc") {
-                std::vector<string> lineTimeCodes = split_string(lineContent, "|");
-                for (const string& timecode : lineTimeCodes) {
-                    std::vector<string> codes = split_string(timecode, ",");
+                std::vector<std::string> lineTimeCodes = split_string(lineContent, "|");
+                for (const std::string& timecode : lineTimeCodes) {
+                    std::vector<std::string> codes = split_string(timecode, ",");
                     timecodes.emplace_back(std::stoi(codes[0]), std::stoi(codes[1]));
                 }
             }
@@ -85,14 +87,14 @@ CLyricItem::CLyricItem(const std::vector<string>& lyricLines, LyricStyle style) 
             std::smatch lastPairMatch;
             if (std::regex_match(lineContent, lastPairMatch, lastPairRegex)) {
                 int lastTimeCode = std::stoi(lastPairMatch.str(1));
-                string lastWord = lastPairMatch.str(2);
+                std::string lastWord = lastPairMatch.str(2);
 
                 int totalTime = 0, charNum = 0; // Number of character "char", not the byte "char"
                 timecodes.emplace_back(totalTime, charNum);
                 content.clear();
                 std::smatch timeCodePairMatch;
                 while (std::regex_search(lineContent, timeCodePairMatch, timeCodePairRegex)) {
-                    string word = timeCodePairMatch.str(2);
+                    std::string word = timeCodePairMatch.str(2);
                     totalTime += std::stoi(timeCodePairMatch.str(1));
                     charNum += utf8StringChars(word);
                     timecodes.emplace_back(totalTime, charNum);
@@ -113,14 +115,14 @@ CLyricItem::CLyricItem(const std::vector<string>& lyricLines, LyricStyle style) 
             if (std::regex_match(lineContent, lastPairMatch, lastPairRegex)) {
                 int lastTimeCodeStart = std::stoi(lastPairMatch.str(1));
                 int lastTimeCodeLength = std::stoi(lastPairMatch.str(2));
-                string lastWord = lastPairMatch.str(3);
+                std::string lastWord = lastPairMatch.str(3);
 
                 int totalTime = 0, charNum = 0; // Number of character "char", not the byte "char"
                 timecodes.emplace_back(totalTime, charNum);
                 content.clear();
                 std::smatch timeCodePairMatch;
                 while (std::regex_search(lineContent, timeCodePairMatch, timeCodePairRegex)) {
-                    string word = timeCodePairMatch.str(3);
+                    std::string word = timeCodePairMatch.str(3);
                     // totalTime = start + length;
                     totalTime = std::stoi(timeCodePairMatch.str(1)) + std::stoi(timeCodePairMatch.str(2));
                     charNum += utf8StringChars(word);
@@ -150,12 +152,12 @@ bool CLyricItem::operator>(const CLyricItem& item) const {
     return this->startTime > item.startTime;
 }
 
-string CLyricItem::fileSaveString() {
+std::string CLyricItem::fileSaveString() {
     std::ostringstream stringStream;
     stringStream << '[' << std::setw(2) << std::setfill('0') << startTime / 60000 << ':' << std::setw(2)
                  << std::setfill('0') << startTime / 1000 % 60 << '.' << std::left << std::setw(3) << std::setfill('0')
                  << startTime % 1000 << ']';
-    string timeTag = stringStream.str();
+    std::string timeTag = stringStream.str();
     stringStream.str("");
     stringStream.clear();
     stringStream << timeTag << content << '\n';
@@ -168,42 +170,42 @@ string CLyricItem::fileSaveString() {
             timeCodeStringStream << timecodes[i].first << ',' << timecodes[i].second << '|';
         }
         timeCodeStringStream << timecodes.back().first << ',' << timecodes.back().second;
-        string timeCodeString = timeCodeStringStream.str();
+        std::string timeCodeString = timeCodeStringStream.str();
         stringStream << timeTag << "[tc]" << timeCodeString << '\n';
     }
     return stringStream.str();
 }
 
-CLyric::CLyric(string lyricContent, LyricStyle style) {
-    while (lyricContent.find('\r') != string::npos) {
+CLyric::CLyric(std::string lyricContent, LyricStyle style) {
+    while (lyricContent.find('\r') != std::string::npos) {
         lyricContent.erase(lyricContent.find('\r'), 1);
     }
 
-    std::vector<string> lines = split_string(lyricContent, "\n");
-    std::multimap<string, string> linesMap;
+    std::vector<std::string> lines = split_string(lyricContent, "\n");
+    std::multimap<std::string, std::string> linesMap;
 
     for (int i = 0; i < lines.size(); ++i) {
-        string line = lines[i];
+        std::string line = lines[i];
 
         std::regex linePattern(R"((\[.*?\])+(.*))");
         std::smatch lineMatch;
-        string content;
+        std::string content;
         if (std::regex_match(line, lineMatch, linePattern)) {
             content = lineMatch.str(2);
         }
 
         std::regex tagsPattern(R"(\[(.*?)\])");
         std::smatch tagsMatch;
-        std::vector<string> tags;
+        std::vector<std::string> tags;
         while (std::regex_search(line, tagsMatch, tagsPattern)) {
             tags.push_back(tagsMatch.str(1));
             line = tagsMatch.suffix();
         }
 
         if (tags.size() == 1) {
-            const string& tag = tags[0];
+            const std::string& tag = tags[0];
             if (std::isdigit(static_cast<unsigned char>(tag[0]))) { // Signed char UB
-                linesMap.insert(std::pair<string, string>(tag, "[" + tag + "]" + line));
+                linesMap.insert(std::pair<std::string, std::string>(tag, "[" + tag + "]" + line));
             } else {
                 if (tag == "ti") {
                     track.title = content;
@@ -216,14 +218,14 @@ CLyric::CLyric(string lyricContent, LyricStyle style) {
                 } else if (tag == "instrumental") {
                     track.instrumental = true;
                 } else if (style == LyricStyle::XiamiStyle && tag == "x-trans") {
-                    string previousLine = lines[i - 1];
+                    std::string previousLine = lines[i - 1];
 
-                    string previousContent;
+                    std::string previousContent;
                     if (std::regex_match(previousLine, lineMatch, linePattern)) {
                         previousContent = lineMatch.str(2);
                     }
 
-                    std::vector<string> previousTags;
+                    std::vector<std::string> previousTags;
                     while (std::regex_search(previousLine, tagsMatch, tagsPattern)) {
                         previousTags.push_back(tagsMatch.str(1));
                         previousLine = tagsMatch.suffix();
@@ -233,17 +235,17 @@ CLyric::CLyric(string lyricContent, LyricStyle style) {
                         content = previousContent;
                     }
 
-                    for (const string& previousTag: previousTags) {
+                    for (const std::string& previousTag: previousTags) {
                         if (std::isdigit(static_cast<unsigned char>(previousTag[0])))
                             linesMap.insert(
-                                    std::pair<string, string>(previousTag, "[" + previousTag + "]" + "[tr]" + content));
+                                    std::pair<std::string, std::string>(previousTag, "[" + previousTag + "]" + "[tr]" + content));
                     }
                 }
             }
         } else {
             for (auto& tag: tags) {
                 if (!std::isdigit(static_cast<unsigned char>(tag[0]))) {
-                    string prepend = "[";
+                    std::string prepend = "[";
                     prepend.append(tag).append("]").append(content);
                     content = prepend;
                 }
@@ -252,7 +254,7 @@ CLyric::CLyric(string lyricContent, LyricStyle style) {
                 if (std::isdigit(static_cast<unsigned char>(tag[0]))) {
                     std::ostringstream lineStream;
                     lineStream << "[" << tag << "]" << content;
-                    linesMap.insert(std::pair<string, string>(tag, lineStream.str()));
+                    linesMap.insert(std::pair<std::string, std::string>(tag, lineStream.str()));
                 }
             }
         }
@@ -260,7 +262,7 @@ CLyric::CLyric(string lyricContent, LyricStyle style) {
 
     for (auto itr = linesMap.begin(); itr != linesMap.end(); itr = linesMap.upper_bound(itr->first)) {
         auto range = linesMap.equal_range(itr->first);
-        std::vector<string> linesWithSameTag;
+        std::vector<std::string> linesWithSameTag;
         while (range.first != range.second) {
             linesWithSameTag.push_back(range.first->second);
             ++range.first;
@@ -274,18 +276,18 @@ CLyric::CLyric(string lyricContent, LyricStyle style) {
                      });
 }
 
-string CLyric::filename() const {
+std::string CLyric::filename() const {
     return filename(track.title, track.album, track.artist);
 }
 
-string CLyric::filename(const string& title, const string& album, const string& artist) {
+std::string CLyric::filename(const std::string& title, const std::string& album, const std::string& artist) {
     std::ostringstream stringStream;
     stringStream << title << " - " << artist << " - " << album << ".clrc";
-    string filename = stringStream.str();
+    std::string filename = stringStream.str();
     return normalizeFileName(filename);
 }
 
-void CLyric::saveToFile(const string& saveDirectoryPath) {
+void CLyric::saveToFile(const std::string& saveDirectoryPath) {
     std::ofstream saveFile(std::filesystem::u8path(saveDirectoryPath + "/" + filename()), std::ios::out);
     saveFile << readableString();
     saveFile.close();
@@ -298,7 +300,7 @@ void CLyric::mergeTranslation(const CLyric& trans) {
     }
 }
 
-string CLyric::readableString() {
+std::string CLyric::readableString() {
     std::ostringstream stringStream;
     stringStream << "[ti]" << track.title << '\n';
     if (!track.album.empty()) {
@@ -318,7 +320,7 @@ string CLyric::readableString() {
     return stringStream.str();
 }
 
-void CLyric::deleteFile(const string& saveDirectoryPath) {
+void CLyric::deleteFile(const std::string& saveDirectoryPath) {
     remove(std::filesystem::u8path(saveDirectoryPath + "/" + filename()));
 }
 

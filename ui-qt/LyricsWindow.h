@@ -17,6 +17,8 @@
 
 class TrayIcon;
 
+using cLyric::CLyric;
+
 class LyricsWindow : public QWidget {
 Q_OBJECT
 public:

@@ -21,7 +21,7 @@ CLyricLabel::CLyricLabel(QWidget* parent, const QFont& font, QColor color, QColo
     text = QString::fromStdString(firstLine ? item->content : item->translation);
     hasTimeCode = !(item->timecodes.empty());
 
-    metrics = QFontMetrics(font);
+    metrics = QFontMetricsF(font);
     if (hasTimeCode) {
         for (const auto& timecode : item->timecodes) {
             pixelMap.append(QPair(timecode.first, metrics.horizontalAdvance(text,
@@ -49,12 +49,11 @@ void CLyricLabel::paintEvent([[maybe_unused]] QPaintEvent* event) {
     painter.drawText(0, 0, width(), height(), alignment(), text);
 
     if (hasTimeCode) {
-        textStartingPos = getTextStartingPos(width(), height(), metrics.horizontalAdvance(text), metrics.height(),
+        QPointF textStartingPos = getTextStartingPos(width(), height(), metrics.horizontalAdvance(text), metrics.height(),
                                              alignment());
 
         painter.setPen(playedColor);
-        painter.drawText(textStartingPos.x(), textStartingPos.y(), int(maskWidth), height(),
-                         Qt::AlignLeft | Qt::AlignTop, text);
+        painter.drawText(QRectF(textStartingPos, QSizeF(maskWidth, height())), Qt::AlignTop | Qt::AlignLeft, text);
     }
 }
 

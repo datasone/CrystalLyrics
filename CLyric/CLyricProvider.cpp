@@ -15,6 +15,8 @@
 
 using nlohmann::json;
 
+using namespace cLyric;
+
 CLyricProvider::CLyricProvider() {
     curlHandle = curl_easy_init();
 
@@ -38,8 +40,8 @@ size_t CLyricProvider::storeCURLResponse(void* buffer, size_t size, size_t nmemb
     return size * nmemb;
 }
 
-void CLyricProvider::normalizeName(string& str, bool isHttpParam) {
-    for (auto& c: str) {
+void CLyricProvider::normalizeName(std::string &str, bool isHttpParam) {
+    for (auto &c: str) {
         if (static_cast<unsigned char>(c) > 127) {
             // Non-Ascii char
             continue;
@@ -88,14 +90,14 @@ void CLyricProvider::normalizeName(string& str, bool isHttpParam) {
     }
 }
 
-string CLyricProvider::normalizeName(const string& str, bool isHttpParam) {
-    string s = str;
+std::string CLyricProvider::normalizeName(const std::string &str, bool isHttpParam) {
+    std::string s = str;
     normalizeName(s, isHttpParam);
     return s;
 }
 
 void Gecimi::searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) {
-    string url = "http://gecimi.com/api/lyric/" + track.title;
+    std::string url = "http://gecimi.com/api/lyric/" + track.title;
 
     if (track.artist.empty()) {
         curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
@@ -112,19 +114,19 @@ void Gecimi::searchLyrics(const Track& track, std::function<void(std::vector<CLy
         auto searchResult = json::parse(response);
         std::vector<int> distances(searchResult["result"].size());
         std::vector<CLyric> lyrics;
-        std::map<int, string> artistMap, coverMap;
+        std::map<int, std::string> artistMap, coverMap;
 
         for (int i = 0; i < searchResult["result"].size(); ++i) {
             auto item = searchResult["result"][i];
 
             // Get artist name
-            string artistName = track.artist;
+            std::string artistName = track.artist;
             int artistId = item["artist_id"];
             int retryCount, maxTries = 3;
             while (true) {
                 try {
                     if (artistMap.find(artistId) == artistMap.end()) {
-                        string artistInfoUrl = "http://gecimi.com/api/artist/";
+                        std::string artistInfoUrl = "http://gecimi.com/api/artist/";
                         artistInfoUrl.append(std::to_string(artistId));
                         curl_easy_setopt(curlHandle, CURLOPT_URL, artistInfoUrl.c_str());
                         response.clear();
@@ -149,12 +151,12 @@ void Gecimi::searchLyrics(const Track& track, std::function<void(std::vector<CLy
         for (size_t sorted_index : sorted_indexes) {
             auto item = searchResult["result"][sorted_index];
 
-            string coverImageUrl;
+            std::string coverImageUrl;
             // Get album cover image
             int albumId = item["aid"];
             try {
                 if (coverMap.find(albumId) == coverMap.end()) {
-                    string albumInfoUrl = "http://gecimi.com/api/cover/";
+                    std::string albumInfoUrl = "http://gecimi.com/api/cover/";
                     albumInfoUrl.append(std::to_string(albumId));
                     curl_easy_setopt(curlHandle, CURLOPT_URL, albumInfoUrl.c_str());
                     response.clear();
@@ -162,12 +164,12 @@ void Gecimi::searchLyrics(const Track& track, std::function<void(std::vector<CLy
                     auto albumInfo = json::parse(response);
                     coverMap[albumId] = albumInfo["result"]["cover"];
                 }
-            } catch (json::exception& e) {
+            } catch (json::exception &e) {
                 // Leave image empty
             }
             coverImageUrl = coverMap[albumId];
 
-            curl_easy_setopt(curlHandle, CURLOPT_URL, item["lrc"].get<string>().c_str());
+            curl_easy_setopt(curlHandle, CURLOPT_URL, item["lrc"].get<std::string>().c_str());
             response.clear();
             if (curl_easy_perform(curlHandle) != CURLE_OK)
                 continue;
@@ -175,8 +177,9 @@ void Gecimi::searchLyrics(const Track& track, std::function<void(std::vector<CLy
             if (response.empty() || response[0] != '[')
                 continue;
 
-            lyrics.emplace_back(response, Track(item["song"], track.album, item["artist"], coverImageUrl, "Gecimi",
-                                                track.duration));
+            lyrics.emplace_back(response,
+                                Track(item["song"], track.album, item["artist"],
+                                      coverImageUrl, "Gecimi", track.duration));
             if (++count > 5) break;
         }
 
@@ -188,14 +191,14 @@ void Gecimi::searchLyrics(const Track& track, std::function<void(std::vector<CLy
     }
 }
 
-TTPlayer::TTPlayerResult::TTPlayerResult(string title, string artist, int id, const string& targetTitle,
-                                         const string& targetArtist) : title(std::move(title)),
-                                                                       artist(std::move(artist)), id(id) {
+TTPlayer::TTPlayerResult::TTPlayerResult(std::string title, std::string artist, int id, const std::string &targetTitle,
+                                         const std::string &targetArtist) : title(std::move(title)),
+                                                                            artist(std::move(artist)), id(id) {
     distance = stringDistance(this->title, targetTitle) + stringDistance(this->artist, targetArtist) / 2;
 }
 
 void TTPlayer::searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) {
-    string searchUrl = "http://ttlrcct.qianqian.com/dll/lyricsvr.dll?sh";
+    std::string searchUrl = "http://ttlrcct.qianqian.com/dll/lyricsvr.dll?sh";
     searchUrl.append("?Artist=").append(toUTF16LEHexString(normalizeName(converter.Convert(track.artist))));
     searchUrl.append("&Title=").append(toUTF16LEHexString(normalizeName(converter.Convert(track.title))));
     searchUrl.append("&Flags=0");
@@ -238,7 +241,7 @@ void TTPlayer::searchLyrics(const Track& track, std::function<void(std::vector<C
         int count = 0;
         for (const auto& result : results) {
             // Download lyric
-            string lyricUrl = "http://ttlrcct.qianqian.com/dll/lyricsvr.dll?dl";
+            std::string lyricUrl = "http://ttlrcct.qianqian.com/dll/lyricsvr.dll?dl";
             lyricUrl.append("?Id=").append(std::to_string(result.id));
             lyricUrl.append("&Code=").append(std::to_string(TTPlayerMagicCode(result.artist, result.title, result.id)));
             curl_easy_setopt(curlHandle, CURLOPT_URL, lyricUrl.c_str());
@@ -250,7 +253,8 @@ void TTPlayer::searchLyrics(const Track& track, std::function<void(std::vector<C
                 continue;
 
             lyrics.emplace_back(response,
-                                Track(result.title, track.album, result.artist, "", "TTPlayer", track.duration));
+                                Track(result.title, track.album, result.artist,
+                                      "", "TTPlayer", track.duration));
             if (++count > 5) break;
         }
 
@@ -260,7 +264,7 @@ void TTPlayer::searchLyrics(const Track& track, std::function<void(std::vector<C
     }
 }
 
-string TTPlayer::toUTF16LEHexString(const string& str) {
+std::string TTPlayer::toUTF16LEHexString(const std::string &str) {
     // Requires str encoded in UTF-8
     std::ostringstream ss;
     int i = 0;
@@ -308,13 +312,13 @@ string TTPlayer::toUTF16LEHexString(const string& str) {
     return ss.str();
 }
 
-int TTPlayer::TTPlayerMagicCode(const string& artist, const string& title, unsigned int id) {
+int TTPlayer::TTPlayerMagicCode(const std::string &artist, const std::string &title, unsigned int id) {
     // Requires strings encoded in UTF-8
-    string infoString = artist + title;
+    std::string infoString = artist + title;
     std::vector<unsigned char> code;
     code.reserve(infoString.length());
 
-    for (auto& c: artist + title) {
+    for (auto &c: artist + title) {
         code.push_back(static_cast<unsigned char>(c));
     }
 
@@ -371,7 +375,7 @@ void Xiami::searchLyrics(const Track& track, std::function<void(std::vector<CLyr
     curl_easy_setopt(curlHandle, CURLOPT_POSTFIELDS, "");
     curl_easy_setopt(curlHandle, CURLOPT_REFERER, "http://h.xiami.com/");
 
-    string url = "http://api.xiami.com/web?v=2.0&r=search%2Fsongs&limit=10";
+    std::string url = "http://api.xiami.com/web?v=2.0&r=search%2Fsongs&limit=10";
     url.append("&key=").append(normalizeName(track.title + " " + track.artist, true));
     url.append("&app_key=1");
 
@@ -404,9 +408,8 @@ void Xiami::searchLyrics(const Track& track, std::function<void(std::vector<CLyr
                 continue;
 
             lyrics.emplace_back(response,
-                                Track(result.title, result.album, result.artist, result.coverImageUrl, "Xiami",
-                                      track.duration),
-                                LyricStyle::XiamiStyle);
+                                Track(result.title, result.album, result.artist,
+                                      result.coverImageUrl, "Xiami", track.duration), LyricStyle::XiamiStyle);
 
             if (++count > 5) break;
         }
@@ -419,18 +422,15 @@ void Xiami::searchLyrics(const Track& track, std::function<void(std::vector<CLyr
     }
 }
 
-Xiami::XiamiResult::XiamiResult(string title, string album, string artist, string coverImageUrl, string lyricUrl,
-                                const string& targetTitle, const string& targetArtist) : title(std::move(title)),
-                                                                                         album(std::move(album)),
-                                                                                         artist(std::move(artist)),
-                                                                                         coverImageUrl(std::move(
-                                                                                                 coverImageUrl)),
-                                                                                         lyricUrl(std::move(lyricUrl)) {
+Xiami::XiamiResult::XiamiResult(std::string title, std::string album, std::string artist, std::string coverImageUrl,
+                                std::string lyricUrl, const std::string &targetTitle, const std::string &targetArtist)
+        : title(std::move(title)), album(std::move(album)), artist(std::move(artist)),
+          coverImageUrl(std::move(coverImageUrl)), lyricUrl(std::move(lyricUrl)) {
     distance = stringDistance(this->title, targetTitle) + stringDistance(this->artist, targetArtist) / 2;
 }
 
 void Kugou::searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) {
-    string url = "http://lyrics.kugou.com/search";
+    std::string url = "http://lyrics.kugou.com/search";
     url.append("?keyword=").append(normalizeName(track.title + " " + track.artist, true));
     url.append("&duration=").append(std::to_string(track.duration * 1000));
     url.append("&client=pc&ver=1&man=yes");
@@ -457,7 +457,7 @@ void Kugou::searchLyrics(const Track& track, std::function<void(std::vector<CLyr
 
         int count = 0;
         for (const auto& result: results) {
-            string lyricUrl = "http://lyrics.kugou.com/download";
+            std::string lyricUrl = "http://lyrics.kugou.com/download";
             lyricUrl.append("?id=").append(result.id);
             lyricUrl.append("&accesskey=").append(result.accessKey);
             lyricUrl.append("&fmt=krc&charset=utf8&client=pc&var=1");
@@ -469,9 +469,9 @@ void Kugou::searchLyrics(const Track& track, std::function<void(std::vector<CLyr
 
             auto lyricResult = json::parse(response);
 
-            string lyricText = decryptKrc(lyricResult["content"], true);
-            lyrics.emplace_back(lyricText, Track(result.title, "", result.artist, "", "Kugou", track.duration),
-                                LyricStyle::KugouStyle);
+            std::string lyricText = decryptKrc(lyricResult["content"], true);
+            lyrics.emplace_back(lyricText, Track(result.title, "", result.artist,
+                                                 "", "Kugou", track.duration), LyricStyle::KugouStyle);
 
             if (++count > 5) break;
         }
@@ -485,8 +485,8 @@ void Kugou::searchLyrics(const Track& track, std::function<void(std::vector<CLyr
 
 }
 
-string Kugou::decryptKrc(const string& krcString, bool base64Parse) {
-    string encodedString;
+std::string Kugou::decryptKrc(const std::string &krcString, bool base64Parse) {
+    std::string encodedString;
     if (base64Parse) {
         macaron::Base64::Decode(krcString, encodedString);
     } else {
@@ -496,26 +496,25 @@ string Kugou::decryptKrc(const string& krcString, bool base64Parse) {
     unsigned char decodeKey[] = {64, 71, 97, 119, 94, 50, 116, 71, 81, 54, 49, 45, 206, 210, 110, 105};
     if (encodedString.rfind("krc1", 0) == 0) {
         for (size_t i = 4; i < encodedString.length(); ++i) {
-            char& byte = encodedString[i];
+            char &byte = encodedString[i];
             byte = byte ^ decodeKey[(i - 4) & 0b1111u];
         }
-        string decompressed;
+        std::string decompressed;
         if (zlibInflate(encodedString.substr(4), decompressed))
             return decompressed;
     }
-    return string();
+    return std::string();
 }
 
-Kugou::KugouResult::KugouResult(string title, string artist, string id, string accessKey, int duration,
-                                const string& targetTitle, const string& targetArtist) : title(std::move(title)),
-                                                                                         artist(std::move(artist)),
-                                                                                         id(std::move(id)), accessKey(
-                std::move(accessKey)), duration(duration) {
+Kugou::KugouResult::KugouResult(std::string title, std::string artist, std::string id, std::string accessKey,
+                                int duration, const std::string &targetTitle, const std::string &targetArtist)
+        : title(std::move(title)), artist(std::move(artist)), id(std::move(id)), accessKey(std::move(accessKey)),
+          duration(duration) {
     distance = stringDistance(this->title, targetTitle) + stringDistance(this->artist, targetArtist) / 2;
 }
 
 void QQMusic::searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) {
-    string url = "http://c.y.qq.com/soso/fcgi-bin/client_search_cp";
+    std::string url = "http://c.y.qq.com/soso/fcgi-bin/client_search_cp";
     url.append("?w=").append(normalizeName(track.title + "+" + track.artist, true));
     curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
     response.clear();
@@ -542,7 +541,7 @@ void QQMusic::searchLyrics(const Track& track, std::function<void(std::vector<CL
         curl_easy_setopt(curlHandle, CURLOPT_REFERER, "http://y.qq.com/portal/player.html");
         int count = 0;
         for (const auto& result: results) {
-            string lyricURL = "http://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg";
+            std::string lyricURL = "http://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg";
             lyricURL.append("?songmid=").append(result.songmid);
             lyricURL.append("&g_tk=").append("5381");
             curl_easy_setopt(curlHandle, CURLOPT_URL, lyricURL.c_str());
@@ -555,24 +554,24 @@ void QQMusic::searchLyrics(const Track& track, std::function<void(std::vector<CL
             if (lyricResponse["lyric"].is_null())
                 continue;
 
-            string lyric = lyricResponse["lyric"];
+            std::string lyric = lyricResponse["lyric"];
 
             if (lyric.empty())
                 continue;
 
-            string coverImageUrl = "http://imgcache.qq.com/music/photo/album/";
+            std::string coverImageUrl = "http://imgcache.qq.com/music/photo/album/";
             coverImageUrl.append(std::to_string(result.albumid % 100)).append("/albumpic_").append(
                     std::to_string(result.albumid)).append("_0.jpg");
 
-            string decodedLyric, decodedTrans;
+            std::string decodedLyric, decodedTrans;
             macaron::Base64::Decode(lyric, decodedLyric);
             unescapeXmlSpeChars(decodedLyric);
             CLyric cLyric = CLyric(decodedLyric,
-                                   Track(result.title, result.album, result.artist, coverImageUrl, "QQMusic",
-                                         result.duration), LyricStyle::CLrcStyle);
+                                   Track(result.title, result.album, result.artist,
+                                         coverImageUrl, "QQMusic", result.duration), LyricStyle::CLrcStyle);
 
             if (!lyricResponse["trans"].is_null()) {
-                string trans = lyricResponse["trans"];
+                std::string trans = lyricResponse["trans"];
                 macaron::Base64::Decode(trans, decodedTrans);
                 unescapeXmlSpeChars(decodedTrans);
                 CLyric transLyric = CLyric(decodedTrans, LyricStyle::CLrcStyle);
@@ -592,17 +591,16 @@ void QQMusic::searchLyrics(const Track& track, std::function<void(std::vector<CL
     }
 }
 
-QQMusic::QQMusicResult::QQMusicResult(string title, string artist, string album, string songmid, int albumid,
-                                      int interval, const string& targetTitle, const string& targetArtist) : title(
-        std::move(title)), artist(std::move(artist)), album(std::move(album)), songmid(std::move(songmid)),
-                                                                                                             albumid(albumid),
-                                                                                                             duration(
-                                                                                                                     interval) {
+QQMusic::QQMusicResult::QQMusicResult(std::string title, std::string artist, std::string album, std::string songmid,
+                                      int albumid, int interval, const std::string &targetTitle,
+                                      const std::string &targetArtist)
+        : title(std::move(title)), artist(std::move(artist)), album(std::move(album)), songmid(std::move(songmid)),
+          albumid(albumid), duration(interval) {
     distance = stringDistance(this->title, targetTitle) + stringDistance(this->artist, targetArtist) / 2;
 }
 
 void Netease::searchLyrics(const Track& track, std::function<void(std::vector<CLyric>)> appendResultCallback) {
-    string url = "http://music.163.com/api/search/pc";
+    std::string url = "http://music.163.com/api/search/pc";
     url.append("?s=").append(normalizeName(track.title + " " + track.artist, true));
     url.append("&offset=0").append("&limit=10").append("&type=1");
     curl_easy_setopt(curlHandle, CURLOPT_REFERER, "http://music.163.com/");
@@ -628,7 +626,7 @@ void Netease::searchLyrics(const Track& track, std::function<void(std::vector<CL
 
         int count = 0;
         for (const auto& result: results) {
-            string lyricURL = "http://music.163.com/api/song/lyric";
+            std::string lyricURL = "http://music.163.com/api/song/lyric";
             lyricURL.append("?id=").append(std::to_string(result.id));
             lyricURL.append("&lv=1").append("&kv=1").append("&tv=-1");
             curl_easy_setopt(curlHandle, CURLOPT_URL, lyricURL.c_str());
@@ -639,16 +637,16 @@ void Netease::searchLyrics(const Track& track, std::function<void(std::vector<CL
 
             if (result.distance == 0 && !lyricResult["nolyric"].is_null() && lyricResult["nolyric"]) {
                 CLyric cLyric = CLyric(
-                        Track(result.title, result.album, result.artist, result.coverImageUrl, "Netease",
-                              result.duration, true), std::vector<CLyricItem>());
+                        Track(result.title, result.album, result.artist,
+                              result.coverImageUrl, "Netease", result.duration, true), std::vector<CLyricItem>());
                 lyrics.push_back(cLyric);
             }
 
             if (lyricResult["lrc"]["lyric"].is_null())
                 continue;
             CLyric cLyric = CLyric(lyricResult["lrc"]["lyric"],
-                                       Track(result.title, result.album, result.artist, result.coverImageUrl,
-                                             "Netease", result.duration), LyricStyle::CLrcStyle);
+                                   Track(result.title, result.album, result.artist,
+                                         result.coverImageUrl, "Netease", result.duration), LyricStyle::CLrcStyle);
 
             if (!lyricResult["tlyric"]["lyric"].is_null()) {
                 CLyric trans = CLyric(lyricResult["tlyric"]["lyric"], LyricStyle::CLrcStyle);
@@ -668,12 +666,10 @@ void Netease::searchLyrics(const Track& track, std::function<void(std::vector<CL
     }
 }
 
-Netease::NeteaseResult::NeteaseResult(string title, string artist, string album, string coverImageUrl, int id,
-                                      int duration, const string& targetTitle, const string& targetArtist) : title(
-        std::move(title)), artist(std::move(artist)), album(std::move(album)), coverImageUrl(std::move(coverImageUrl)),
-                                                                                                             id(id),
-                                                                                                             duration(
-                                                                                                                     duration /
-                                                                                                                     1000) {
+Netease::NeteaseResult::NeteaseResult(std::string title, std::string artist, std::string album,
+                                      std::string coverImageUrl, int id, int duration, const std::string &targetTitle,
+                                      const std::string &targetArtist)
+        : title(std::move(title)), artist(std::move(artist)), album(std::move(album)),
+          coverImageUrl(std::move(coverImageUrl)), id(id), duration(duration / 1000) {
     distance = stringDistance(this->title, targetTitle) + stringDistance(this->artist, targetArtist) / 2;
 }

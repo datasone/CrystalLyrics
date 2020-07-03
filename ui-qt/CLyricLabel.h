@@ -11,23 +11,24 @@
 #include <QtCore/QTimer>
 #include "CLyric.h"
 
+using cLyric::CLyricItem;
+
 class CLyricLabel : public QLabel {
 Q_OBJECT
 public:
     explicit CLyricLabel(QWidget* parent = nullptr, const QFont& font = QFont(), QColor color = QColor(Qt::white),
                          QColor playedColor = QColor(Qt::lightGray), CLyricItem* item = nullptr, bool firstLine = true);
 
+    QString text;
 private:
     QFont font;
-    QFontMetrics metrics = QFontMetrics(font);
+    QFontMetricsF metrics = QFontMetricsF(font);
     QColor color, playedColor;
     CLyricItem* item;
     bool firstLine, hasTimeCode = false;
-    QString text;
     QList<QPair<int, int>> pixelMap; // QList<QPair<ms, pixels>>
     int segmentIndex = 0, currentTimeInSegment = 0;
     double maskWidth = 0, maskWidthInterval = -1;
-    QPoint textStartingPos;
     QTimer* fillTimer, * segmentTimer;
 
 public slots:

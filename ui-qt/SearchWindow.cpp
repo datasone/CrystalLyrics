@@ -14,7 +14,9 @@
 #include "SearchWindow.h"
 #include "ui_SearchWindow.h"
 
-SearchWindow::SearchWindow(const string& title, const string& artist, int duration, TrayIcon* trayIcon, QWidget* parent)
+using cLyric::CLyricSearch;
+
+SearchWindow::SearchWindow(const std::string& title, const std::string& artist, int duration, TrayIcon* trayIcon, QWidget* parent)
         : QMainWindow(parent), ui(new Ui::SearchWindow), duration(duration) {
     ui->setupUi(this);
 
@@ -62,8 +64,8 @@ void SearchWindow::searchLyrics() {
     selectedRow = -1;
 
     std::thread thread([this] {
-        string title = this->ui->titleEdit->text().toStdString();
-        string artist = this->ui->artistEdit->text().toStdString();
+        std::string title = this->ui->titleEdit->text().toStdString();
+        std::string artist = this->ui->artistEdit->text().toStdString();
         QPointer<SearchWindow> searchWindow = QPointer<SearchWindow>(this);
 
         auto lyrics = CLyricSearch(TrayIcon::openCCSimpleConverter).searchCLyric(title, artist, duration);

@@ -23,6 +23,9 @@
 
 #include <opencc/opencc.h>
 
+using cLyric::CLyric;
+using cLyric::Track;
+
 class TrayIcon : public QObject {
 Q_OBJECT
 public:
@@ -31,6 +34,8 @@ public:
     bool isPlaying = false;
     Track currentTrack;
     int currentLine = 0;
+
+    int currentScreenIndex();
 
     CLyric* pcLyric = nullptr;
 
@@ -136,7 +141,7 @@ private:
 
     void resume();
 
-    void findLyric(const string& title, const string& album, const string& artist, int duration);
+    void findLyric(const std::string& title, const std::string& album, const std::string& artist, int duration);
 };
 
 

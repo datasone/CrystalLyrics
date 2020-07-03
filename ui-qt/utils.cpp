@@ -41,29 +41,25 @@ void centerWidgetInScrollArea(QScrollArea* scrollArea, QWidget* displayArea, QWi
     verticalAnimation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
-QPoint getTextStartingPos(int x, int y, int width, int height, Qt::Alignment alignment) {
-    int px = 0, py = 0;
+QPointF getTextStartingPos(int x, int y, float width, float height, Qt::Alignment alignment) {
+    float px = 0, py = 0;
     if ((alignment & Qt::AlignLeft) == Qt::AlignLeft) {
         px = 0;
     } else if ((alignment & Qt::AlignHCenter) == Qt::AlignHCenter) {
-        if (width % 2 == 1)
-            width += 1;
-        px = x / 2 - width / 2;
+        px = x / 2.0 - width / 2;
     } else if ((alignment & Qt::AlignRight) == Qt::AlignRight) {
-        px = x - width;
+        px = x * 1.0 - width;
     }
 
     if ((alignment & Qt::AlignTop) == Qt::AlignTop) {
         py = 0;
     } else if ((alignment & Qt::AlignVCenter) == Qt::AlignVCenter) {
-        if (height % 2 == 1)
-            height += 1;
-        py = y / 2 - height / 2;
+        py = y / 2.0 - height / 2;
     } else if ((alignment & Qt::AlignBottom) == Qt::AlignBottom) {
-        py = y - height;
+        py = y * 1.0 - height;
     }
 
-    return QPoint(px, py);
+    return QPointF(px, py);
 }
 
 bool stringContainsKana(const std::string& s) {

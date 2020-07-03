@@ -32,6 +32,9 @@ QString path = QUrl::fromCFURL(url).path() + "Contents/Resources/";
 QString path = "";
 #endif
 
+using cLyric::CLyricSearch;
+using cLyric::LyricStyle;
+
 opencc::SimpleConverter TrayIcon::openCCSimpleConverter = opencc::SimpleConverter(path.toStdString() + "opencc-files/t2s.json");
 
 TrayIcon::TrayIcon() {
@@ -224,6 +227,12 @@ void TrayIcon::parseSocketResult(QLocalSocket* socket) {
         elapsedTime = 0;
         eTimer->start();
 
+        if (desktopLyricsWindow)
+            desktopLyricsWindow->clearLyrics();
+
+        if (lyricsWindow)
+            lyricsWindow->clearLyrics();
+
         pcLyric = nullptr;
         std::thread thread([this] {
             findLyric(currentTrack.title, currentTrack.album, currentTrack.artist, currentTrack.duration);
@@ -386,7 +395,7 @@ void TrayIcon::updateTime(int position, bool playing) {
 
 }
 
-void TrayIcon::findLyric(const string& title, const string& album, const string& artist, int duration) {
+void TrayIcon::findLyric(const std::string& title, const std::string& album, const std::string& artist, int duration) {
     if (appDataPath.isEmpty())
         return;
     CLyric lyric = CLyricSearch(TrayIcon::openCCSimpleConverter).fetchCLyric(title, album, artist, duration, appDataPath.toStdString());
@@ -429,7 +438,7 @@ void TrayIcon::wrongLyric() {
 }
 
 namespace {
-    inline string normalizeFileName(string name) {
+    inline std::string normalizeFileName(std::string name) {
         for (auto& c: name) {
             if (static_cast<unsigned char>(c) > 127) {
                 // Non-Ascii char
@@ -566,11 +575,17 @@ void TrayIcon::geometryChanged() {
     createMenu();
     trayIcon->setContextMenu(mainMenu);
     if (desktopLyricsWindow) {
-        QList<QScreen*> screens = QApplication::screens();
-        for (int i = 0; i < screens.size(); ++i)
-            if (screens[i]->name() == chosenScreenName) {
-                desktopLyricsWindow->resize(i);
-                break;
-            }
+        desktopLyricsWindow->resize(currentScreenIndex());
     }
+}
+
+int TrayIcon::currentScreenIndex() {
+    QList<QScreen*> screens = QApplication::screens();
+
+    for (int i = 0; i < screens.size(); ++i) {
+        if (screens[i]->name() == chosenScreenName) {
+            return i;
+        }
+    }
+    return -1;
 }

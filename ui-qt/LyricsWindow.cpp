@@ -110,7 +110,7 @@ void LyricsWindow::updateLyric(CLyric* lyric) {
             label->setStyleSheet(labelStylesheet(windowLyricsTextColor));
             label->setWordWrap(true);
             label->setAlignment(Qt::AlignHCenter);
-            string contentText = item.content;
+            std::string contentText = item.content;
             if (trayIcon && trayIcon->currentTrack.contentLanguage == Track::Language::zh)
                 contentText = TrayIcon::openCCSimpleConverter.Convert(item.content);
             if (item.isDoubleLine()) {

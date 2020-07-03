@@ -9,11 +9,13 @@
 
 #include "CLyricUtils.h"
 
-CLyric CLyricSearch::fetchCLyric(const string& title, const string& album, const string& artist, int duration,
-                                 const string& saveDirectoryPath) {
+using namespace cLyric;
+
+CLyric CLyricSearch::fetchCLyric(const std::string &title, const std::string &album, const std::string &artist,
+                                 int duration, const std::string &saveDirectoryPath) {
     auto name = saveDirectoryPath + "/" + CLyric::filename(title, album, artist);
     std::ifstream localFile(std::filesystem::u8path(saveDirectoryPath + "/" + CLyric::filename(title, album, artist)));
-    string lineContent, localFileContents;
+    std::string lineContent, localFileContents;
     if (localFile.is_open()) {
         while (std::getline(localFile, lineContent)) {
             localFileContents += lineContent;
@@ -86,11 +88,11 @@ void CLyricSearch::appendResultCallback(std::vector<CLyric> lyrics) {
     }
 }
 
-std::vector<CLyric> CLyricSearch::searchCLyric(const string& title, const string& artist, int duration) {
-    std::function < void(std::vector<CLyric>) > callback = [this](std::vector<CLyric> lyrics) {
+std::vector<CLyric> CLyricSearch::searchCLyric(const std::string &title, const std::string &artist, int duration) {
+    std::function<void(std::vector<CLyric>)> callback = [this](std::vector<CLyric> lyrics) {
         this->appendResultCallback(std::move(lyrics));
     };
-    for (std::unique_ptr<CLyricProvider>& provider: providerList) {
+    for (std::unique_ptr<CLyricProvider> &provider: providerList) {
         provider->searchLyrics(Track(title, "", artist, "", "", duration), callback);
     }
     return this->results;

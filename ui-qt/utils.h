@@ -13,7 +13,7 @@
 
 void centerWidgetInScrollArea(QScrollArea* scrollArea, QWidget* displayArea, QWidget* childWidget);
 
-QPoint getTextStartingPos(int x, int y, int width, int height, Qt::Alignment alignment);
+QPointF getTextStartingPos(int x, int y, float width, float height, Qt::Alignment alignment);
 
 bool stringContainsKana(const std::string& s);
 

@@ -17,9 +17,6 @@ public:
     ~SettingsWindow() override;
 
 private slots:
-
-    void desktopLyricDisplayModeToggled();
-
     void selectFont();
 
     void selectColor();
@@ -30,10 +27,6 @@ protected:
     void closeEvent(QCloseEvent* event) override;
 
     void saveSettings();
-
-signals:
-
-    void doubleLineAlignmentEnabled(bool);
 
 private:
     Ui::SettingsWindow* ui;
