@@ -26,6 +26,7 @@ CLyricProvider::CLyricProvider() {
     curl_easy_setopt(curlHandle, CURLOPT_WRITEFUNCTION, storeCURLResponse);
     curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, &response);
     curl_easy_setopt(curlHandle, CURLOPT_FOLLOWLOCATION, 1);
+    curl_easy_setopt(curlHandle, CURLOPT_ACCEPT_ENCODING, "br, gzip, deflate");
     curl_easy_setopt(curlHandle, CURLOPT_USERAGENT, "CrystalLyrics/0.0.1");
 }
 
