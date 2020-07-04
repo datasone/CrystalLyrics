@@ -8,6 +8,8 @@
 
 #include <gtest/gtest.h>
 
+using namespace cLyric;
+
 TEST(CLyricTests, CLyricItemBasicLrcParseTest) {
     std::vector<std::string> testContent;
     testContent.emplace_back("[00:56.34]测试1");
