@@ -98,11 +98,10 @@ std::vector<CLyric> CLyricSearch::searchCLyric(const std::string &title, const s
     return this->results;
 }
 
-CLyricSearch::CLyricSearch(opencc::SimpleConverter& converter) {
+CLyricSearch::CLyricSearch() {
     providerList[0] = std::make_unique<Xiami>();
     providerList[1] = std::make_unique<Netease>();
     providerList[2] = std::make_unique<QQMusic>();
     providerList[3] = std::make_unique<Kugou>();
     providerList[4] = std::make_unique<Gecimi>();
-    providerList[5] = std::make_unique<TTPlayer>(converter);
 }

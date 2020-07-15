@@ -18,7 +18,7 @@ namespace cLyric {
         std::unique_ptr<CLyricProvider> providerList[6];
 
     public:
-        explicit CLyricSearch(opencc::SimpleConverter &converter);
+        explicit CLyricSearch();
 
         CLyric fetchCLyric(const std::string &title, const std::string &album, const std::string &artist, int duration,
                            const std::string &saveDirectoryPath);

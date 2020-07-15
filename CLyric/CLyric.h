@@ -11,8 +11,6 @@
 #include <vector>
 #include <functional>
 
-#include <opencc/opencc.h>
-
 namespace cLyric {
 
     enum LyricStyle {

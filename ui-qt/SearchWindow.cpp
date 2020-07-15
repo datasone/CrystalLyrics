@@ -68,7 +68,7 @@ void SearchWindow::searchLyrics() {
         std::string artist = this->ui->artistEdit->text().toStdString();
         QPointer<SearchWindow> searchWindow = QPointer<SearchWindow>(this);
 
-        auto lyrics = CLyricSearch(TrayIcon::openCCSimpleConverter).searchCLyric(title, artist, duration);
+        auto lyrics = CLyricSearch().searchCLyric(title, artist, duration);
 
         std::stable_sort(lyrics.begin(), lyrics.end(),
                          [&](const CLyric& res1, const CLyric& res2) {

@@ -46,31 +46,6 @@ namespace cLyric {
         void searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
     };
 
-    class TTPlayer : public CLyricProvider {
-        struct TTPlayerResult {
-            TTPlayerResult(std::string title, std::string artist, int id) : title(std::move(title)),
-                                                                            artist(std::move(artist)),
-                                                                            id(id), distance(INT_MAX) {}
-
-            TTPlayerResult(std::string title, std::string artist, int id, const std::string &targetTitle,
-                           const std::string &targetArtist);
-
-            std::string title, artist;
-            int id = 0, distance;
-        };
-
-        static std::string toUTF16LEHexString(const std::string &str);
-
-        static int TTPlayerMagicCode(const std::string &artist, const std::string &title, unsigned int id);
-
-        opencc::SimpleConverter &converter;
-
-    public:
-        TTPlayer(opencc::SimpleConverter &converter) : converter(converter) {}
-
-        void searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
-    };
-
     class Xiami : public CLyricProvider {
         struct XiamiResult {
             XiamiResult(std::string title, std::string album, std::string artist, std::string coverImageUrl,

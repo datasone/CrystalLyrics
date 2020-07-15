@@ -398,7 +398,7 @@ void TrayIcon::updateTime(int position, bool playing) {
 void TrayIcon::findLyric(const std::string& title, const std::string& album, const std::string& artist, int duration) {
     if (appDataPath.isEmpty())
         return;
-    CLyric lyric = CLyricSearch(TrayIcon::openCCSimpleConverter).fetchCLyric(title, album, artist, duration, appDataPath.toStdString());
+    CLyric lyric = CLyricSearch().fetchCLyric(title, album, artist, duration, appDataPath.toStdString());
     if (lyric.isValid()) {
         emit lyricFound(lyric, false);
     } else {

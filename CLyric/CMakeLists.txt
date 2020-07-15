@@ -1,14 +1,10 @@
 find_package(CURL CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
-find_package(tinyxml2 CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(OpenCC REQUIRED)
-
-include_directories(${Opencc_INCLUDE_PATH})
 
 aux_source_directory(. CLYRIC_SRC)
 add_library(CLyric ${CLYRIC_SRC})
-target_link_libraries(CLyric PRIVATE CURL::libcurl nlohmann_json::nlohmann_json tinyxml2::tinyxml2 ZLIB::ZLIB ${Opencc_LIBRARY})
+target_link_libraries(CLyric PRIVATE CURL::libcurl nlohmann_json::nlohmann_json ZLIB::ZLIB)
 
 enable_testing()
 
