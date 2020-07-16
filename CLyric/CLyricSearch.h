@@ -15,7 +15,7 @@ namespace cLyric {
 
         void appendResultCallback(std::vector<CLyric> lyrics);
 
-        std::unique_ptr<CLyricProvider> providerList[6];
+        std::unique_ptr<CLyricProvider> providerList[5];
 
     public:
         explicit CLyricSearch();
