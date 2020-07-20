@@ -12,7 +12,6 @@
 
 #include "CLyric.h"
 #include <curl/curl.h>
-#include <opencc/opencc.h>
 #include <cstdint>
 #include <utility>
 #include <map>
