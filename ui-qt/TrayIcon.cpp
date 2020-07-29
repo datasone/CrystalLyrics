@@ -558,6 +558,8 @@ void TrayIcon::createMenu(bool firstTime) {
 void TrayIcon::setDesktopLyricScreen() {
     auto* action = qobject_cast<QAction*>(sender());
     int screenIndex = action->data().toInt();
+    QList<QScreen*> screens = QApplication::screens();
+    chosenScreenName = screens[screenIndex]->name();
     if (desktopLyricsWindow)
         desktopLyricsWindow->resize(screenIndex);
 }
