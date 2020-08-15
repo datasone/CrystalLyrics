@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <numeric>
+#include <regex>
 
 using nlohmann::json;
 
@@ -40,46 +41,48 @@ size_t CLyricProvider::storeCURLResponse(void* buffer, size_t size, size_t nmemb
     return size * nmemb;
 }
 
-void CLyricProvider::normalizeName(std::string &str, bool isHttpParam) {
-    for (auto &c: str) {
-        if (static_cast<unsigned char>(c) > 127) {
-            // Non-Ascii char
-            continue;
-        }
-        switch (c) {
-            case '!':
-            case '"':
-            case '#':
-            case '$':
-            case '%':
-            case '&':
-            case '\'':
-            case '(':
-            case ')':
-            case '*':
-            case '+':
-            case ',':
-            case '-':
-            case '.':
-            case '/':
-            case ':':
-            case ';':
-            case '<':
-            case '=':
-            case '>':
-            case '?':
-            case '@':
-            case '[':
-            case '\\':
-            case ']':
-            case '^':
-            case '_':
-            case '`':
-            case '{':
-            case '|':
-            case '}':
-            case '~':
-                c = ' ';
+void CLyricProvider::normalizeName(std::string &str, bool isHttpParam, bool noSpecialChars) {
+    if (noSpecialChars) {
+        for (auto &c: str) {
+            if (static_cast<unsigned char>(c) > 127) {
+                // Non-Ascii char
+                continue;
+            }
+            switch (c) {
+                case '!':
+                case '"':
+                case '#':
+                case '$':
+                case '%':
+                case '&':
+                case '\'':
+                case '(':
+                case ')':
+                case '*':
+                case '+':
+                case ',':
+                case '-':
+                case '.':
+                case '/':
+                case ':':
+                case ';':
+                case '<':
+                case '=':
+                case '>':
+                case '?':
+                case '@':
+                case '[':
+                case '\\':
+                case ']':
+                case '^':
+                case '_':
+                case '`':
+                case '{':
+                case '|':
+                case '}':
+                case '~':
+                    c = ' ';
+            }
         }
     }
 
@@ -90,9 +93,9 @@ void CLyricProvider::normalizeName(std::string &str, bool isHttpParam) {
     }
 }
 
-std::string CLyricProvider::normalizeName(const std::string &str, bool isHttpParam) {
+std::string CLyricProvider::normalizeName(const std::string &str, bool isHttpParam, bool noSpecialChars) {
     std::string s = str;
-    normalizeName(s, isHttpParam);
+    normalizeName(s, isHttpParam, noSpecialChars);
     return s;
 }
 
@@ -493,4 +496,31 @@ Netease::NeteaseResult::NeteaseResult(std::string title, std::string artist, std
         : title(std::move(title)), artist(std::move(artist)), album(std::move(album)),
           coverImageUrl(std::move(coverImageUrl)), id(id), duration(duration / 1000) {
     distance = stringDistance(this->title, targetTitle) + stringDistance(this->artist, targetArtist) / 2;
+}
+
+void THBWiki::searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) {
+    long responseCode;
+
+    std::string url = "https://touhou.cd/lyrics/";
+    url.append(normalizeName(trim_copy(track.title), true)).append(".all.lrc");
+    curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
+    response.clear();
+    curl_easy_perform(curlHandle);
+    curl_easy_getinfo(curlHandle, CURLINFO_RESPONSE_CODE, &responseCode);
+
+    if (responseCode != 200)
+        return;
+
+    std::regex transPattern(R"((\[.*\])(.*) *\/\/ *(.*))");
+    std::string lyric = std::regex_replace(response, transPattern, "$1$2\n$1[tr]$3");
+
+    std::regex tagPattern(R"(\[(ti|ar|al):(.*)\])");
+    std::string lyricContent = std::regex_replace(lyric, tagPattern, "[$1]$2");
+
+    CLyric cLyric(lyricContent, CLrcStyle);
+    cLyric.track.source = "THBWiki";
+
+    std::vector<CLyric> lyrics = { cLyric };
+
+    appendResultCallback(lyrics);
 }

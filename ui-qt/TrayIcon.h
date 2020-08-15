@@ -11,6 +11,7 @@
 #include "SettingsWindow.h"
 #include "DesktopLyricsWindow.h"
 #include "EditLyricsWindow.h"
+#include "OffsetWindow.h"
 
 #include <CLyric/CLyric.h>
 #include <QtWidgets/QSystemTrayIcon>
@@ -22,6 +23,7 @@
 #include <QtCore/QElapsedTimer>
 
 #include <opencc/opencc.h>
+#include <QWidgetAction>
 
 using cLyric::CLyric;
 using cLyric::Track;
@@ -51,11 +53,11 @@ private slots:
 
     void showLyricsWindow();
 
-    void reshowDesktopLyricsWindow();
-
     void showSearchWindow();
 
     void showSettingsWindow();
+
+    void showOffsetWindow();
 
     void setTrackInstrumental();
 
@@ -79,9 +81,19 @@ private slots:
 
 public slots:
 
+    void reshowDesktopLyricsWindow(bool changed = false, bool enabled = false);
+
+    void reshowLyricsWindow();
+
     void updateLyric(const CLyric& lyric, bool manualSearch);
 
     void updateTime(int position = -1, bool playing = true);
+
+    void updateLyricOffset(int offset);
+
+    void clearLyricOffset();
+
+    void saveLyricOffset(int offset);
 
 signals:
 
@@ -102,6 +114,7 @@ private:
             * markAlbumAsInstrumentalAction,
             * loadLocalLyricFileAction,
             * editLyricsAction,
+            * offsetAction,
             * settingsAction,
             * exitAction;
 
@@ -118,12 +131,14 @@ private:
     QPointer<SearchWindow> searchWindow = nullptr;
     QPointer<SettingsWindow> settingsWindow = nullptr;
     QPointer<EditLyricsWindow> editLyricsWindow = nullptr;
+    QPointer<OffsetWindow> offsetWindow = nullptr;
 
     CLyric cLyric;
     CLyricItem* currentLyric = nullptr, * nextLyric = nullptr;
     QElapsedTimer* eTimer;
     QTimer* timer;
     int elapsedTime = -1;
+    int offset = 0;
 
     bool conversionTCSC;
 

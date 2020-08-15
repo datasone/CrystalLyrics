@@ -88,6 +88,7 @@ TEST(CLyricTests, CLyricBasicLrcParseTest) {
     std::string contentText = R"([ti]海阔天空
 [al]乐与怒
 [ar]Beyond
+[offset]+40
 [03:57.70][03:20.00][02:08.00][01:09.00]原谅我这一生不羁放纵爱自由
 [04:04.50][03:27.00][02:15.00][01:16.00]也会怕有一天会跌倒
 [04:10.85][03:46.00][03:33.00][02:21.00][01:22.00]被弃了理想谁人都可以
@@ -99,6 +100,7 @@ TEST(CLyricTests, CLyricBasicLrcParseTest) {
     EXPECT_STREQ(lyric.track.title.c_str(), "海阔天空") << "Lyric Title Test Failed";
     EXPECT_STREQ(lyric.track.album.c_str(), "乐与怒") << "Lyric Album Test Failed";
     EXPECT_STREQ(lyric.track.artist.c_str(), "Beyond") << "Lyric Artist Test Failed";
+    EXPECT_EQ(lyric.offset, 40) << "Lyric Offset Test Failed";
 
     std::vector<int> startTimes;
     for (auto& item : lyric.lyrics) {

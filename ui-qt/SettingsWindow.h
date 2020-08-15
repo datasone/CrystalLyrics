@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QSettings>
 
+class TrayIcon;
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class SettingsWindow; }
 QT_END_NAMESPACE
@@ -12,7 +14,7 @@ class SettingsWindow : public QMainWindow {
 Q_OBJECT
 
 public:
-    explicit SettingsWindow(QWidget* parent = nullptr);
+    explicit SettingsWindow(QWidget* parent = nullptr, TrayIcon* trayIcon = nullptr);
 
     ~SettingsWindow() override;
 
@@ -29,9 +31,14 @@ protected:
     void saveSettings();
 
 private:
+    TrayIcon* trayIcon;
     Ui::SettingsWindow* ui;
     QSettings settings;
     QFont desktopFont, windowFont;
+
+    bool desktopLyricsEnabled;
+
+    void notifyChanges();
 };
 
 #endif // SETTINGSWINDOW_H

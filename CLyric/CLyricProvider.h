@@ -31,9 +31,9 @@ namespace cLyric {
     public:
         virtual ~CLyricProvider();
 
-        void normalizeName(std::string &str, bool isHttpParam = false);
+        void normalizeName(std::string &str, bool isHttpParam = false, bool noSpecialChars = true);
 
-        std::string normalizeName(const std::string &str, bool isHttpParam = false);
+        std::string normalizeName(const std::string &str, bool isHttpParam = false, bool noSpecialChars = true);
 
         virtual void
         searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) = 0;
@@ -137,6 +137,11 @@ namespace cLyric {
             int id, duration, distance;
         };
 
+    public:
+        void searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
+    };
+
+    class THBWiki : public CLyricProvider {
     public:
         void searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) override;
     };

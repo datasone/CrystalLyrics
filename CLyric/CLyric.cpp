@@ -215,6 +215,8 @@ CLyric::CLyric(std::string lyricContent, LyricStyle style) {
                     track.artist = content;
                 } else if (tag == "du") {
                     track.duration = std::stoi(content);
+                } else if (tag == "offset") {
+                    offset = std::stoi(content);
                 } else if (tag == "instrumental") {
                     track.instrumental = true;
                 } else if (style == LyricStyle::XiamiStyle && tag == "x-trans") {
@@ -311,6 +313,9 @@ std::string CLyric::readableString() {
     }
     if (track.duration > 0) {
         stringStream << "[du]" << track.duration << '\n';
+    }
+    if (offset != 0) {
+        stringStream << "[offset]" << ((offset > 0) ? "+" : "") << offset << '\n';
     }
     if (track.instrumental) {
         stringStream << "[instrumental]\n";

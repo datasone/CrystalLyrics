@@ -1,5 +1,6 @@
 #include "SettingsWindow.h"
 #include "ui_SettingsWindow.h"
+#include "TrayIcon.h"
 
 #include <QFontDialog>
 #include <QtWidgets>
@@ -17,11 +18,9 @@ inline QString extractColorFromStyleSheet(const QString& styleSheet) {
     return styleSheet.split("background-color : ")[1].split(';')[0];
 }
 
-SettingsWindow::SettingsWindow(QWidget* parent)
-        : QMainWindow(parent), ui(new Ui::SettingsWindow) {
+SettingsWindow::SettingsWindow(QWidget* parent, TrayIcon* trayIcon)
+        : QMainWindow(parent), ui(new Ui::SettingsWindow), trayIcon(trayIcon) {
     ui->setupUi(this);
-
-    // TODO: Notify other components on Save
 
     connect(ui->fontSelect, &QPushButton::clicked, this, &SettingsWindow::selectFont);
 
@@ -43,7 +42,8 @@ SettingsWindow::SettingsWindow(QWidget* parent)
 
     // Read settings
     auto desktopLyrics = settings.value("desktopLyrics", false);
-    ui->desktopLyrics->setChecked(desktopLyrics.toBool());
+    desktopLyricsEnabled = desktopLyrics.toBool();
+    ui->desktopLyrics->setChecked(desktopLyricsEnabled);
 
     auto doubleLineDisplay = settings.value("doubleLineDisplay", false);
     (doubleLineDisplay.toBool() ? ui->lyricsDoubleLine : ui->lyricsSingleLine)->setChecked(true);
@@ -166,6 +166,8 @@ void SettingsWindow::saveSettings() {
     settings.setValue("ipcSocketName", ui->ipcSocketName->text());
 
     settings.setValue("conversionTCSC", ui->conversionTCSC->isChecked());
+
+    notifyChanges();
 }
 
 void SettingsWindow::selectColor() {
@@ -175,4 +177,11 @@ void SettingsWindow::selectColor() {
     if (color.isValid()) {
         senderButton->setStyleSheet(buttonColorStyleSheet(color.name(QColor::HexArgb)));
     }
+}
+
+void SettingsWindow::notifyChanges() {
+    if (desktopLyricsEnabled != ui->desktopLyrics->isChecked())
+        trayIcon->reshowDesktopLyricsWindow(true, ui->desktopLyrics->isChecked());
+    else trayIcon->reshowDesktopLyricsWindow();
+    trayIcon->reshowLyricsWindow();
 }

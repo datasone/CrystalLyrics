@@ -104,4 +104,5 @@ CLyricSearch::CLyricSearch() {
     providerList[2] = std::make_unique<QQMusic>();
     providerList[3] = std::make_unique<Kugou>();
     providerList[4] = std::make_unique<Gecimi>();
+    providerList[5] = std::make_unique<THBWiki>();
 }

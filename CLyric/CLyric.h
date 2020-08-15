@@ -73,6 +73,7 @@ namespace cLyric {
 
         Track track;
         std::vector<CLyricItem> lyrics;
+        int offset = 0; // in milliseconds
 
         CLyric() = default;
 
