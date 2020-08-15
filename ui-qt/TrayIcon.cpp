@@ -158,7 +158,7 @@ void TrayIcon::showSearchWindow() {
 
 void TrayIcon::showSettingsWindow() {
     if (settingsWindow == nullptr) {
-        settingsWindow = new SettingsWindow();
+        settingsWindow = new SettingsWindow(nullptr, this);
         settingsWindow->setAttribute(Qt::WA_DeleteOnClose);
         settingsWindow->show();
         settingsWindow->activateWindow();
