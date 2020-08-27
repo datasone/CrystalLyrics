@@ -128,6 +128,8 @@ void DesktopLyricsWindow::updateLyric(CLyric* lyric) {
     contentConversionTCSC = conversionTCSC && (trayIcon->currentTrack.contentLanguage == Track::Language::zh);
     translationConversionTCSC = conversionTCSC && (trayIcon->currentTrack.translateLanguage == Track::Language::zh);
 
+    currentLine = -1;
+
     this->resume();
     if (cLyric && cLyric->track.instrumental) {
         this->pause();

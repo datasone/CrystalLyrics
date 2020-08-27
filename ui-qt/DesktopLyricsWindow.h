@@ -30,7 +30,7 @@ private:
     QVBoxLayout* layout;
     CLyricLabel* firstLine, * secondLine;
     CLyric* cLyric;
-    int currentLine = 0;
+    int currentLine = -1;
 
     TrayIcon* trayIcon;
 
