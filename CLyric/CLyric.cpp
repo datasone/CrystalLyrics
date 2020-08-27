@@ -6,11 +6,15 @@
 #include "CLyric.h"
 #include "CLyricUtils.h"
 
+#ifdef Q_OS_WIN
+#define _REGEX_MAX_STACK_COUNT 2000L
+#endif
+#include <regex>
+
 #include <cctype>
 #include <sstream>
 #include <fstream>
 #include <filesystem>
-#include <regex>
 #include <map>
 #include <utility>
 #include <algorithm>

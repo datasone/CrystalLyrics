@@ -2,10 +2,29 @@
 #include "utils.h"
 #include "RunGuard.h"
 
+#include <exception>
+#include <fstream>
 #include <QApplication>
 
-// TODO: Lyric offset, Kana
+// TODO: Kana
 int main(int argc, char* argv[]) {
+    std::set_terminate([]() {
+        std::exception_ptr exceptionPtr = std::current_exception();
+
+        if (exceptionPtr) {
+            try {
+                std::rethrow_exception(exceptionPtr);
+            } catch (const std::exception& e) {
+                std::fstream file("crash.log", std::fstream::trunc | std::fstream::out);
+                if (file.is_open()) {
+                    file << e.what();
+                    file.close();
+                }
+            }
+        }
+        abort();
+    });
+
     RunGuard guard("DzHEvHYGGC");
     if (!guard.tryToRun())
         return 0;

@@ -396,11 +396,15 @@ void QQMusic::searchLyrics(const Track& track, std::function<void(std::vector<CL
 
             if (!lyricResponse["trans"].is_null()) {
                 std::string trans = lyricResponse["trans"];
+                if (trans.empty())
+                    goto emptyTransBreak;
                 macaron::Base64::Decode(trans, decodedTrans);
                 unescapeXmlSpeChars(decodedTrans);
                 CLyric transLyric = CLyric(decodedTrans, LyricStyle::CLrcStyle);
                 cLyric.mergeTranslation(transLyric);
             }
+
+            emptyTransBreak:
 
             lyrics.push_back(cLyric);
 
