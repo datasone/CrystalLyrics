@@ -10,7 +10,7 @@
 #include <QTableWidgetItem>
 #include <QNetworkAccessManager>
 
-class TrayIcon;
+class MainApplication;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class SearchWindow; }
@@ -34,7 +34,7 @@ private slots:
     void timeout();
 
 public:
-    SearchWindow(const std::string& title, const std::string& artist, int duration, TrayIcon* trayIcon,
+    SearchWindow(const std::string& title, const std::string& artist, int duration, MainApplication* mainApp,
                  QWidget* parent = nullptr);
 
     ~SearchWindow() override;

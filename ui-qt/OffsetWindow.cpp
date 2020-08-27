@@ -4,11 +4,12 @@
 
 #include "OffsetWindow.h"
 
-#include "TrayIcon.h"
+#include "MainApplication.h"
 #include <QCloseEvent>
 #include <QMessageBox>
 
-OffsetWindow::OffsetWindow(QWidget *parent, CLyric* lyric, TrayIcon *trayIcon): QWidget(parent), cLyric(lyric), trayIcon(trayIcon) {
+OffsetWindow::OffsetWindow(MainApplication *mainApp, CLyric *lyric, QWidget *parent)
+        : QWidget(parent), cLyric(lyric), mainApp(mainApp) {
     this->setWindowFlags(
         #ifdef Q_OS_MACOS
             Qt::Window |
@@ -25,10 +26,10 @@ OffsetWindow::OffsetWindow(QWidget *parent, CLyric* lyric, TrayIcon *trayIcon): 
     spinBox->setMinimum(-10000);
     spinBox->setSingleStep(100);
     spinBox->setValue(lyric ? lyric->offset : 0);
-    connect(spinBox, qOverload<double>(&QDoubleSpinBox::valueChanged), [trayIcon](double offset) { trayIcon->updateLyricOffset(int(offset)); });
+    connect(spinBox, qOverload<double>(&QDoubleSpinBox::valueChanged), [mainApp](double offset) { mainApp->updateLyricOffset(int(offset)); });
 
     saveButton = new QPushButton("Save Offset", this);
-    connect(saveButton, &QPushButton::clicked, [trayIcon, this]() { trayIcon->saveLyricOffset(int(spinBox->value())); });
+    connect(saveButton, &QPushButton::clicked, [mainApp, this]() { mainApp->saveLyricOffset(int(spinBox->value())); });
 
     layout->addWidget(new QLabel("Adjust lyric offset "));
     layout->addWidget(spinBox);
@@ -45,10 +46,10 @@ void OffsetWindow::closeEvent(QCloseEvent *event) {
         if (resBtn == QMessageBox::Cancel) {
             event->ignore();
         } else if (resBtn == QMessageBox::No) {
-            trayIcon->clearLyricOffset();
+            mainApp->clearLyricOffset();
             event->accept();
         } else if (resBtn == QMessageBox::Yes) {
-            trayIcon->saveLyricOffset(int(spinBox->value()));
+            mainApp->saveLyricOffset(int(spinBox->value()));
             event->accept();
         }
     } else {

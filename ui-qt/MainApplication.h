@@ -3,8 +3,8 @@
 // This file is part of CrystalLyrics.
 //
 
-#ifndef CRYSTALLYRICS_TRAYICON_H
-#define CRYSTALLYRICS_TRAYICON_H
+#ifndef CRYSTALLYRICS_MAINAPPLICATION_H
+#define CRYSTALLYRICS_MAINAPPLICATION_H
 
 #include "LyricsWindow.h"
 #include "SearchWindow.h"
@@ -28,10 +28,10 @@
 using cLyric::CLyric;
 using cLyric::Track;
 
-class TrayIcon : public QObject {
+class MainApplication : public QObject {
 Q_OBJECT
 public:
-    TrayIcon();
+    MainApplication();
 
     bool isPlaying = false;
     Track currentTrack;
@@ -160,4 +160,4 @@ private:
 };
 
 
-#endif //CRYSTALLYRICS_TRAYICON_H
+#endif //CRYSTALLYRICS_MAINAPPLICATION_H

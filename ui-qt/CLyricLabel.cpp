@@ -9,12 +9,12 @@
 #include <utility>
 #include "CLyricLabel.h"
 #include "ui-qt/utils.h"
-#include "TrayIcon.h"
+#include "MainApplication.h"
 
 // TODO: Font Shadow
 
-CLyricLabel::CLyricLabel(QWidget* parent, const QFont& font, QColor color, QColor playedColor, CLyricItem* item,
-                         bool firstLine)
+CLyricLabel::CLyricLabel(const QFont &font, QColor color, QColor playedColor, CLyricItem *item, bool firstLine,
+                         QWidget *parent)
         : QLabel(parent), font(font), color(std::move(color)), playedColor(std::move(playedColor)), item(item),
           firstLine(firstLine) {
     if (item->translation.empty()) text = QString::fromStdString(item->content);
@@ -110,7 +110,7 @@ void CLyricLabel::updateLyric(CLyricItem* newItem, bool isFirstLine, bool conver
         text = QString::fromStdString(isFirstLine ? item->content : item->translation);
 
         if (convertTCSC) {
-            text = QString::fromStdString(TrayIcon::openCCSimpleConverter.Convert(text.toStdString()));
+            text = QString::fromStdString(MainApplication::openCCSimpleConverter.Convert(text.toStdString()));
         }
 
         hasTimeCode = !(item->timecodes.empty());

@@ -12,21 +12,21 @@
 #include <QDoubleSpinBox>
 #include <QPushButton>
 
-class TrayIcon;
+class MainApplication;
 
 using cLyric::CLyric;
 
 class OffsetWindow: public QWidget {
 Q_OBJECT
 public:
-    explicit OffsetWindow(QWidget* parent = nullptr, CLyric* lyric = nullptr, TrayIcon* trayIcon = nullptr);
+    explicit OffsetWindow(MainApplication *mainApp, CLyric *lyric = nullptr, QWidget *parent = nullptr);
 
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
     CLyric* cLyric;
-    TrayIcon* trayIcon;
+    MainApplication* mainApp;
     QHBoxLayout* layout;
     QDoubleSpinBox* spinBox;
     QPushButton* saveButton;

@@ -11,11 +11,12 @@
 
 #include "utils.h"
 #include "LyricsWindow.h"
-#include "TrayIcon.h"
+#include "MainApplication.h"
 
 inline QString labelStylesheet(const QString& color) { return QString("QLabel { color : %1 }").arg(color); }
 
-LyricsWindow::LyricsWindow(QWidget* parent, CLyric* lyric, TrayIcon *trayIcon) : QWidget(parent), cLyric(lyric), trayIcon(trayIcon) {
+LyricsWindow::LyricsWindow(MainApplication *mainApp, CLyric *lyric, QWidget *parent)
+        : QWidget(parent), cLyric(lyric), mainApp(mainApp) {
 
     this->setWindowFlags(Qt::FramelessWindowHint);
     this->resize(400, 400);
@@ -72,8 +73,8 @@ LyricsWindow::LyricsWindow(QWidget* parent, CLyric* lyric, TrayIcon *trayIcon) :
 
     updateLyric(lyric);
 
-    if (trayIcon->currentLine > 0)
-        activateLine(trayIcon->currentLine);
+    if (mainApp->currentLine > 0)
+        activateLine(mainApp->currentLine);
 }
 
 void LyricsWindow::mousePressEvent(QMouseEvent* event) {
@@ -111,12 +112,12 @@ void LyricsWindow::updateLyric(CLyric* lyric) {
             label->setWordWrap(true);
             label->setAlignment(Qt::AlignHCenter);
             std::string contentText = item.content;
-            if (trayIcon && trayIcon->currentTrack.contentLanguage == Track::Language::zh)
-                contentText = TrayIcon::openCCSimpleConverter.Convert(item.content);
+            if (mainApp && mainApp->currentTrack.contentLanguage == Track::Language::zh)
+                contentText = MainApplication::openCCSimpleConverter.Convert(item.content);
             if (item.isDoubleLine()) {
                 contentText.append("\n");
-                if (trayIcon && trayIcon->currentTrack.translateLanguage == Track::Language::zh) {
-                    contentText.append(TrayIcon::openCCSimpleConverter.Convert(item.translation));
+                if (mainApp && mainApp->currentTrack.translateLanguage == Track::Language::zh) {
+                    contentText.append(MainApplication::openCCSimpleConverter.Convert(item.translation));
                 } else contentText.append(item.translation);
             }
             label->setText(QString::fromStdString(contentText));

@@ -13,14 +13,14 @@
 #include "CLyric.h"
 #include "CLyricLabel.h"
 
-class TrayIcon;
+class MainApplication;
 
 using cLyric::CLyric;
 
 class DesktopLyricsWindow : public QWidget {
 Q_OBJECT
 public:
-    explicit DesktopLyricsWindow(QWidget* parent = nullptr, CLyric* lyric = nullptr, TrayIcon* trayIcon = nullptr);
+    explicit DesktopLyricsWindow(MainApplication *mainApp, CLyric *lyric = nullptr, QWidget *parent = nullptr);
 
     void resize(int screenIndex = 0);
 
@@ -32,7 +32,7 @@ private:
     CLyric* cLyric;
     int currentLine = -1;
 
-    TrayIcon* trayIcon;
+    MainApplication* mainApp;
 
     QSettings settings;
     QColor bgColor, lyricsTextColor, lyricsTextPlayedColor;
@@ -45,9 +45,9 @@ public slots:
 
     void setLine(int lineNum, int timeInLine = 0);
 
-    void pause();
+    void hide();
 
-    void resume();
+    void show();
 
 protected:
     void paintEvent(QPaintEvent* event) override;

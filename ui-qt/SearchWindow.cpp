@@ -10,13 +10,13 @@
 #include <CLyric/CLyricUtils.h>
 
 #include "CLyric.h"
-#include "TrayIcon.h"
+#include "MainApplication.h"
 #include "SearchWindow.h"
 #include "ui_SearchWindow.h"
 
 using cLyric::CLyricSearch;
 
-SearchWindow::SearchWindow(const std::string& title, const std::string& artist, int duration, TrayIcon* trayIcon, QWidget* parent)
+SearchWindow::SearchWindow(const std::string& title, const std::string& artist, int duration, MainApplication* mainApp, QWidget* parent)
         : QMainWindow(parent), ui(new Ui::SearchWindow), duration(duration) {
     ui->setupUi(this);
 
@@ -43,7 +43,7 @@ SearchWindow::SearchWindow(const std::string& title, const std::string& artist, 
 
     connect(timer, &QTimer::timeout, this, &SearchWindow::timeout);
     connect(nam, &QNetworkAccessManager::finished, this, &SearchWindow::coverDownloadfinished);
-    connect(this, &SearchWindow::updateLyricSignal, trayIcon, &TrayIcon::updateLyric);
+    connect(this, &SearchWindow::updateLyricSignal, mainApp, &MainApplication::updateLyric);
 
     connect(this, &SearchWindow::searchResultSignal,
             this, &SearchWindow::appendLyrics, Qt::ConnectionType::BlockingQueuedConnection);

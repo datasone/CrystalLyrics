@@ -16,8 +16,8 @@ using cLyric::CLyricItem;
 class CLyricLabel : public QLabel {
 Q_OBJECT
 public:
-    explicit CLyricLabel(QWidget* parent = nullptr, const QFont& font = QFont(), QColor color = QColor(Qt::white),
-                         QColor playedColor = QColor(Qt::lightGray), CLyricItem* item = nullptr, bool firstLine = true);
+    explicit CLyricLabel(const QFont &font, QColor color, QColor playedColor,
+                         CLyricItem *item = nullptr, bool firstLine = true, QWidget *parent = nullptr);
 
     QString text;
 private:

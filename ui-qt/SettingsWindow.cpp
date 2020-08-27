@@ -1,6 +1,6 @@
 #include "SettingsWindow.h"
 #include "ui_SettingsWindow.h"
-#include "TrayIcon.h"
+#include "MainApplication.h"
 
 #include <QFontDialog>
 #include <QtWidgets>
@@ -18,8 +18,8 @@ inline QString extractColorFromStyleSheet(const QString& styleSheet) {
     return styleSheet.split("background-color : ")[1].split(';')[0];
 }
 
-SettingsWindow::SettingsWindow(QWidget* parent, TrayIcon* trayIcon)
-        : QMainWindow(parent), ui(new Ui::SettingsWindow), trayIcon(trayIcon) {
+SettingsWindow::SettingsWindow(MainApplication *mainApp, QWidget *parent)
+        : QMainWindow(parent), ui(new Ui::SettingsWindow), mainApp(mainApp) {
     ui->setupUi(this);
 
     connect(ui->fontSelect, &QPushButton::clicked, this, &SettingsWindow::selectFont);
@@ -181,7 +181,7 @@ void SettingsWindow::selectColor() {
 
 void SettingsWindow::notifyChanges() {
     if (desktopLyricsEnabled != ui->desktopLyrics->isChecked())
-        trayIcon->reshowDesktopLyricsWindow(true, ui->desktopLyrics->isChecked());
-    else trayIcon->reshowDesktopLyricsWindow();
-    trayIcon->reshowLyricsWindow();
+        mainApp->reshowDesktopLyricsWindow(true, ui->desktopLyrics->isChecked());
+    else mainApp->reshowDesktopLyricsWindow();
+    mainApp->reshowLyricsWindow();
 }

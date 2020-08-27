@@ -1,4 +1,4 @@
-#include "TrayIcon.h"
+#include "MainApplication.h"
 #include "utils.h"
 #include "RunGuard.h"
 
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     QApplication::setFont(font);
 #endif
 
-    TrayIcon trayIcon;
+    MainApplication mainApp;
 
     return QApplication::exec();
 }

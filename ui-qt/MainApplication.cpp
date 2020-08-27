@@ -3,7 +3,7 @@
 // This file is part of CrystalLyrics.
 //
 
-#include "TrayIcon.h"
+#include "MainApplication.h"
 #include "utils.h"
 
 #include <CLyric/CLyricSearch.h>
@@ -36,9 +36,9 @@ QString path = "";
 using cLyric::CLyricSearch;
 using cLyric::LyricStyle;
 
-opencc::SimpleConverter TrayIcon::openCCSimpleConverter = opencc::SimpleConverter(path.toStdString() + "opencc-files/t2s.json");
+opencc::SimpleConverter MainApplication::openCCSimpleConverter = opencc::SimpleConverter(path.toStdString() + "opencc-files/t2s.json");
 
-TrayIcon::TrayIcon() {
+MainApplication::MainApplication() {
     appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
 
     if (!QDir().exists(appDataPath))
@@ -51,7 +51,7 @@ TrayIcon::TrayIcon() {
 
     timer = new QTimer(this);
     timer->setSingleShot(true);
-    connect(timer, &QTimer::timeout, this, &TrayIcon::timerTimeout);
+    connect(timer, &QTimer::timeout, this, &MainApplication::timerTimeout);
 
     trayIcon = new QSystemTrayIcon(QIcon(":/image/icon.png"));
     mainMenu = new QMenu();
@@ -81,29 +81,29 @@ TrayIcon::TrayIcon() {
         }
 
     connect(qobject_cast<QGuiApplication*>(QApplication::instance()), &QApplication::screenRemoved, this,
-            &TrayIcon::screenChanged);
+            &MainApplication::screenChanged);
     connect(qobject_cast<QGuiApplication*>(QApplication::instance()), &QApplication::screenAdded, this,
-            &TrayIcon::screenChanged);
+            &MainApplication::screenChanged);
 
-    connect(lyricsWindowAction, &QAction::triggered, this, &TrayIcon::showLyricsWindow);
+    connect(lyricsWindowAction, &QAction::triggered, this, &MainApplication::showLyricsWindow);
     connect(desktopLyricsWindowAction, &QAction::triggered, this, [this]() { reshowDesktopLyricsWindow(); });
-    connect(markTrackAsInstrumentalAction, &QAction::triggered, this, &TrayIcon::setTrackInstrumental);
-    connect(markAlbumAsInstrumentalAction, &QAction::triggered, this, &TrayIcon::setAlbumInstrumental);
-    connect(searchLyricAction, &QAction::triggered, this, &TrayIcon::showSearchWindow);
-    connect(loadLocalLyricFileAction, &QAction::triggered, this, &TrayIcon::loadLyricFile);
-    connect(markAsWrongAction, &QAction::triggered, this, &TrayIcon::wrongLyric);
-    connect(editLyricsAction, &QAction::triggered, this, &TrayIcon::showEditLyricsWindow);
-    connect(offsetAction, &QAction::triggered, this, &TrayIcon::showOffsetWindow);
-    connect(settingsAction, &QAction::triggered, this, &TrayIcon::showSettingsWindow);
+    connect(markTrackAsInstrumentalAction, &QAction::triggered, this, &MainApplication::setTrackInstrumental);
+    connect(markAlbumAsInstrumentalAction, &QAction::triggered, this, &MainApplication::setAlbumInstrumental);
+    connect(searchLyricAction, &QAction::triggered, this, &MainApplication::showSearchWindow);
+    connect(loadLocalLyricFileAction, &QAction::triggered, this, &MainApplication::loadLyricFile);
+    connect(markAsWrongAction, &QAction::triggered, this, &MainApplication::wrongLyric);
+    connect(editLyricsAction, &QAction::triggered, this, &MainApplication::showEditLyricsWindow);
+    connect(offsetAction, &QAction::triggered, this, &MainApplication::showOffsetWindow);
+    connect(settingsAction, &QAction::triggered, this, &MainApplication::showSettingsWindow);
     connect(exitAction, &QAction::triggered, QApplication::instance(), &QApplication::quit);
-    connect(QApplication::instance(), &QApplication::aboutToQuit, this, &TrayIcon::cleanupOnQuit);
+    connect(QApplication::instance(), &QApplication::aboutToQuit, this, &MainApplication::cleanupOnQuit);
 
-    connect(this, &TrayIcon::lyricFound, this, &TrayIcon::updateLyric, Qt::ConnectionType::QueuedConnection);
-    connect(this, &TrayIcon::clearLyricsSignal, this, &TrayIcon::clearLyrics, Qt::ConnectionType::QueuedConnection);
+    connect(this, &MainApplication::lyricFound, this, &MainApplication::updateLyric, Qt::ConnectionType::QueuedConnection);
+    connect(this, &MainApplication::clearLyricsSignal, this, &MainApplication::clearLyrics, Qt::ConnectionType::QueuedConnection);
 
     desktopLyrics = settings.value("desktopLyrics", false).toBool();
     if (desktopLyrics) {
-        desktopLyricsWindow = new DesktopLyricsWindow(nullptr, pcLyric, this);
+        desktopLyricsWindow = new DesktopLyricsWindow(this, pcLyric, nullptr);
         desktopLyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
         desktopLyricsWindow->show();
     }
@@ -126,14 +126,14 @@ TrayIcon::TrayIcon() {
         msgBox.show();
     }
 
-    connect(server, &QLocalServer::newConnection, this, &TrayIcon::handleConnection);
+    connect(server, &QLocalServer::newConnection, this, &MainApplication::handleConnection);
 
     conversionTCSC = settings.value("conversionTCSC", false).toBool();
 }
 
-void TrayIcon::showLyricsWindow() {
+void MainApplication::showLyricsWindow() {
     if (lyricsWindow == nullptr) {
-        lyricsWindow = new LyricsWindow(nullptr, pcLyric, this);
+        lyricsWindow = new LyricsWindow(this, pcLyric, nullptr);
         lyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
         lyricsWindow->show();
         lyricsWindow->activateWindow();
@@ -143,7 +143,7 @@ void TrayIcon::showLyricsWindow() {
     }
 }
 
-void TrayIcon::showSearchWindow() {
+void MainApplication::showSearchWindow() {
     if (searchWindow == nullptr) {
         searchWindow = new SearchWindow(currentTrack.title, currentTrack.artist, currentTrack.duration, this,
                                         nullptr);
@@ -156,9 +156,9 @@ void TrayIcon::showSearchWindow() {
     }
 }
 
-void TrayIcon::showSettingsWindow() {
+void MainApplication::showSettingsWindow() {
     if (settingsWindow == nullptr) {
-        settingsWindow = new SettingsWindow(nullptr, this);
+        settingsWindow = new SettingsWindow(this, nullptr);
         settingsWindow->setAttribute(Qt::WA_DeleteOnClose);
         settingsWindow->show();
         settingsWindow->activateWindow();
@@ -168,9 +168,9 @@ void TrayIcon::showSettingsWindow() {
     }
 }
 
-void TrayIcon::showEditLyricsWindow() {
+void MainApplication::showEditLyricsWindow() {
     if (editLyricsWindow == nullptr) {
-        editLyricsWindow = new EditLyricsWindow(nullptr, this);
+        editLyricsWindow = new EditLyricsWindow(this, nullptr);
         editLyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
         editLyricsWindow->show();
         editLyricsWindow->activateWindow();
@@ -180,13 +180,13 @@ void TrayIcon::showEditLyricsWindow() {
     }
 }
 
-void TrayIcon::handleConnection() {
+void MainApplication::handleConnection() {
     QLocalSocket* socket = server->nextPendingConnection();
-    connect(socket, &QLocalSocket::readyRead, this, &TrayIcon::handleSocketRead);
+    connect(socket, &QLocalSocket::readyRead, this, &MainApplication::handleSocketRead);
     connect(socket, &QLocalSocket::disconnected, socket, &QLocalSocket::deleteLater);
 }
 
-void TrayIcon::handleSocketRead() {
+void MainApplication::handleSocketRead() {
     auto* socket = qobject_cast<QLocalSocket*>(sender());
     const auto content = QString::fromUtf8(socket->readAll());
     if (socketMap.contains(socket)) {
@@ -197,7 +197,7 @@ void TrayIcon::handleSocketRead() {
     parseSocketResult(socket);
 }
 
-void TrayIcon::parseSocketResult(QLocalSocket* socket) {
+void MainApplication::parseSocketResult(QLocalSocket* socket) {
     const QString content = socketMap[socket].trimmed();
     if (!content.startsWith('^')) {
         closeSocket(socket, "Bad Request");
@@ -251,7 +251,7 @@ void TrayIcon::parseSocketResult(QLocalSocket* socket) {
     closeSocket(socket);
 }
 
-void TrayIcon::closeSocket(QLocalSocket* socket, const char* message) {
+void MainApplication::closeSocket(QLocalSocket* socket, const char* message) {
     socketMap.remove(socket);
     socket->write(message);
     socket->close();
@@ -259,7 +259,7 @@ void TrayIcon::closeSocket(QLocalSocket* socket, const char* message) {
     socket->deleteLater();
 }
 
-void TrayIcon::timerTimeout() {
+void MainApplication::timerTimeout() {
     if (!isPlaying || !pcLyric || pcLyric->track.instrumental)
         return;
 
@@ -281,9 +281,9 @@ void TrayIcon::timerTimeout() {
     }
 }
 
-void TrayIcon::pause() {
+void MainApplication::pause() {
     if (desktopLyricsWindow) {
-        desktopLyricsWindow->pause();
+        desktopLyricsWindow->hide();
     }
     if (isPlaying) {
         timer->stop();
@@ -292,15 +292,15 @@ void TrayIcon::pause() {
     }
 }
 
-void TrayIcon::resume() {
+void MainApplication::resume() {
     if (!isPlaying) {
         eTimer->start();
         if (desktopLyricsWindow) {
             if (!currentTrack.instrumental && pcLyric && pcLyric->isValid())
-                desktopLyricsWindow->resume();
+                desktopLyricsWindow->show();
             // Sometimes Windows just ignores the window's always on top
         } else if (desktopLyrics) {
-            desktopLyricsWindow = new DesktopLyricsWindow(nullptr, pcLyric, this);
+            desktopLyricsWindow = new DesktopLyricsWindow(this, pcLyric, nullptr);
             desktopLyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
             desktopLyricsWindow->show();
         }
@@ -308,7 +308,7 @@ void TrayIcon::resume() {
     }
 }
 
-void TrayIcon::updateLyric(const CLyric& lyric, bool manualSearch) {
+void MainApplication::updateLyric(const CLyric& lyric, bool manualSearch) {
     if (!manualSearch && pcLyric)
         return;
 
@@ -356,14 +356,14 @@ void TrayIcon::updateLyric(const CLyric& lyric, bool manualSearch) {
         updateTime();
 }
 
-void TrayIcon::updateTime(int position, bool playing) {
+void MainApplication::updateTime(int position, bool playing) {
     if (playing)
         resume();
     else pause();
 
     if (pcLyric && pcLyric->track.instrumental) {
         if (desktopLyricsWindow)
-            desktopLyricsWindow->pause();
+            desktopLyricsWindow->hide();
         return;
     }
 
@@ -402,7 +402,7 @@ void TrayIcon::updateTime(int position, bool playing) {
 
 }
 
-void TrayIcon::findLyric(const std::string& title, const std::string& album, const std::string& artist, int duration) {
+void MainApplication::findLyric(const std::string& title, const std::string& album, const std::string& artist, int duration) {
     if (appDataPath.isEmpty())
         return;
     CLyric lyric = CLyricSearch().fetchCLyric(title, album, artist, duration, appDataPath.toStdString());
@@ -413,11 +413,11 @@ void TrayIcon::findLyric(const std::string& title, const std::string& album, con
     }
 }
 
-void TrayIcon::cleanupOnQuit() {
+void MainApplication::cleanupOnQuit() {
     trayIcon->hide();
 }
 
-void TrayIcon::loadLyricFile() {
+void MainApplication::loadLyricFile() {
     QString fileName = QFileDialog::getOpenFileName(nullptr, "Select Lyric File", QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
     QFile lyricFile(fileName);
     if (!lyricFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -434,9 +434,9 @@ void TrayIcon::loadLyricFile() {
         QMessageBox(QMessageBox::Critical, "CrystalLyrics", "Invalid Lyric File", QMessageBox::Ok).show();
 }
 
-void TrayIcon::wrongLyric() {
+void MainApplication::wrongLyric() {
     if (desktopLyricsWindow)
-        desktopLyricsWindow->pause();
+        desktopLyricsWindow->hide();
     if (lyricsWindow)
         lyricsWindow->clearLyrics();
     if (pcLyric)
@@ -469,7 +469,7 @@ namespace {
     }
 }
 
-void TrayIcon::setTrackInstrumental() {
+void MainApplication::setTrackInstrumental() {
     if (currentTrack.duration > 0) {
         currentTrack.instrumental = true;
         CLyric instrumentalLyric(currentTrack, std::vector<CLyricItem>());
@@ -477,7 +477,7 @@ void TrayIcon::setTrackInstrumental() {
     }
 }
 
-void TrayIcon::setAlbumInstrumental() {
+void MainApplication::setAlbumInstrumental() {
     if (!currentTrack.album.empty()) {
         QFile albumFile(
                 appDataPath + "/" + QString::fromStdString(normalizeFileName(currentTrack.album + ".instrumental")));
@@ -487,23 +487,23 @@ void TrayIcon::setAlbumInstrumental() {
     setTrackInstrumental();
 }
 
-void TrayIcon::clearLyrics() {
+void MainApplication::clearLyrics() {
     if (desktopLyricsWindow)
-        desktopLyricsWindow->pause();
+        desktopLyricsWindow->hide();
     if (lyricsWindow)
         lyricsWindow->clearLyrics();
 }
 
-void TrayIcon::reshowDesktopLyricsWindow(bool changed, bool enabled) {
+void MainApplication::reshowDesktopLyricsWindow(bool changed, bool enabled) {
     if (changed) {
         if (enabled) {
-            desktopLyricsWindow = new DesktopLyricsWindow(nullptr, pcLyric, this);
+            desktopLyricsWindow = new DesktopLyricsWindow(this, pcLyric, nullptr);
             desktopLyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
             desktopLyricsWindow->show();
         } else if (desktopLyricsWindow) desktopLyricsWindow->close();
     } else if (desktopLyricsWindow) {
         desktopLyricsWindow->close();
-        desktopLyricsWindow = new DesktopLyricsWindow(nullptr, pcLyric, this);
+        desktopLyricsWindow = new DesktopLyricsWindow(this, pcLyric, nullptr);
         desktopLyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
         desktopLyricsWindow->show();
     }
@@ -511,10 +511,10 @@ void TrayIcon::reshowDesktopLyricsWindow(bool changed, bool enabled) {
         offsetWindow->close();
 }
 
-void TrayIcon::reshowLyricsWindow() {
+void MainApplication::reshowLyricsWindow() {
     if (lyricsWindow) {
         lyricsWindow->close();
-        lyricsWindow = new LyricsWindow(nullptr, pcLyric, this);
+        lyricsWindow = new LyricsWindow(this, pcLyric, nullptr);
         lyricsWindow->setAttribute(Qt::WA_DeleteOnClose);
         lyricsWindow->show();
     }
@@ -522,7 +522,7 @@ void TrayIcon::reshowLyricsWindow() {
         offsetWindow->close();
 }
 
-void TrayIcon::createMenu(bool firstTime) {
+void MainApplication::createMenu(bool firstTime) {
     if (!firstTime) {
         screenActions.clear();
         actionGroup->deleteLater();
@@ -553,7 +553,7 @@ void TrayIcon::createMenu(bool firstTime) {
                         screens[i]->size().height()));
         screenAction->setCheckable(true);
         screenAction->setData(i);
-        connect(screenAction, &QAction::triggered, this, &TrayIcon::setDesktopLyricScreen);
+        connect(screenAction, &QAction::triggered, this, &MainApplication::setDesktopLyricScreen);
         screenActions.append(screenAction);
         screenSubMenu->addAction(screenAction);
         actionGroup->addAction(screenAction);
@@ -580,7 +580,7 @@ void TrayIcon::createMenu(bool firstTime) {
     mainMenu->addAction(exitAction);
 }
 
-void TrayIcon::setDesktopLyricScreen() {
+void MainApplication::setDesktopLyricScreen() {
     auto* action = qobject_cast<QAction*>(sender());
     int screenIndex = action->data().toInt();
     QList<QScreen*> screens = QApplication::screens();
@@ -589,7 +589,7 @@ void TrayIcon::setDesktopLyricScreen() {
         desktopLyricsWindow->resize(screenIndex);
 }
 
-void TrayIcon::screenChanged(QScreen* screen) {
+void MainApplication::screenChanged(QScreen* screen) {
     QList<QScreen*> screens = QApplication::screens();
             foreach(QScreen* screen, screens) {
             screen->disconnect();
@@ -598,7 +598,7 @@ void TrayIcon::screenChanged(QScreen* screen) {
     geometryChanged();
 }
 
-void TrayIcon::geometryChanged() {
+void MainApplication::geometryChanged() {
     createMenu();
     trayIcon->setContextMenu(mainMenu);
     if (desktopLyricsWindow) {
@@ -606,7 +606,7 @@ void TrayIcon::geometryChanged() {
     }
 }
 
-int TrayIcon::currentScreenIndex() {
+int MainApplication::currentScreenIndex() {
     QList<QScreen*> screens = QApplication::screens();
 
     for (int i = 0; i < screens.size(); ++i) {
@@ -617,16 +617,16 @@ int TrayIcon::currentScreenIndex() {
     return -1;
 }
 
-void TrayIcon::updateLyricOffset(int offset) {
+void MainApplication::updateLyricOffset(int offset) {
     this->offset = int(offset);
     updateTime(-1, isPlaying);
 }
 
-void TrayIcon::clearLyricOffset() {
+void MainApplication::clearLyricOffset() {
     updateLyricOffset(cLyric.offset);
 }
 
-void TrayIcon::saveLyricOffset(int offset) {
+void MainApplication::saveLyricOffset(int offset) {
     updateLyricOffset(offset);
     if (cLyric.isValid()) {
         cLyric.offset = offset;
@@ -634,9 +634,9 @@ void TrayIcon::saveLyricOffset(int offset) {
     }
 }
 
-void TrayIcon::showOffsetWindow() {
+void MainApplication::showOffsetWindow() {
     if (offsetWindow == nullptr) {
-        offsetWindow = new OffsetWindow(nullptr, pcLyric, this);
+        offsetWindow = new OffsetWindow(this, pcLyric, nullptr);
         offsetWindow->setAttribute(Qt::WA_DeleteOnClose);
         offsetWindow->show();
         offsetWindow->activateWindow();

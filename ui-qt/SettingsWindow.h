@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QSettings>
 
-class TrayIcon;
+class MainApplication;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class SettingsWindow; }
@@ -14,7 +14,7 @@ class SettingsWindow : public QMainWindow {
 Q_OBJECT
 
 public:
-    explicit SettingsWindow(QWidget* parent = nullptr, TrayIcon* trayIcon = nullptr);
+    explicit SettingsWindow(MainApplication *mainApp, QWidget *parent = nullptr);
 
     ~SettingsWindow() override;
 
@@ -31,7 +31,7 @@ protected:
     void saveSettings();
 
 private:
-    TrayIcon* trayIcon;
+    MainApplication* mainApp;
     Ui::SettingsWindow* ui;
     QSettings settings;
     QFont desktopFont, windowFont;

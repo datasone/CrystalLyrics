@@ -5,20 +5,20 @@
 
 #include "EditLyricsWindow.h"
 #include "ui_EditLyricsWindow.h"
-#include "TrayIcon.h"
+#include "MainApplication.h"
 
 #include <QMessageBox>
 
 using cLyric::CLyric;
 using cLyric::LyricStyle;
 
-EditLyricsWindow::EditLyricsWindow(QWidget *parent, TrayIcon *trayIcon)
-        : QMainWindow(parent), ui(new Ui::EditLyricsWindow), trayIcon(trayIcon) {
+EditLyricsWindow::EditLyricsWindow(MainApplication *mainApp, QWidget *parent)
+        : QMainWindow(parent), ui(new Ui::EditLyricsWindow), mainApp(mainApp) {
 
     ui->setupUi(this);
 
-    if (trayIcon->pcLyric != nullptr) {
-        ui->lyricsText->setText(QString::fromStdString(trayIcon->pcLyric->readableString()));
+    if (mainApp->pcLyric != nullptr) {
+        ui->lyricsText->setText(QString::fromStdString(mainApp->pcLyric->readableString()));
     }
 
     connect(ui->extractTranslationButton, &QPushButton::clicked, this, &EditLyricsWindow::autoExtractTranslate);
@@ -49,11 +49,11 @@ void EditLyricsWindow::saveLyrics() {
         QMessageBox(QMessageBox::Critical, "CrystalLyrics", "Invalid Lyric Text", QMessageBox::Ok).show();
         return;
     }
-    trayIcon->updateLyric(lyric, true);
+    mainApp->updateLyric(lyric, true);
 }
 
 void EditLyricsWindow::adjustTime() {
-    CLyric lyric = *(trayIcon->pcLyric);
+    CLyric lyric = *(mainApp->pcLyric);
     for (auto& item: lyric.lyrics) {
         int startTime = item.startTime, minuteTime = 0, secondTime = 0, millisecondTime = 0;
 

@@ -13,7 +13,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class EditLyricsWindow; }
 QT_END_NAMESPACE
 
-class TrayIcon;
+class MainApplication;
 
 class EditLyricsWindow : public QMainWindow {
 Q_OBJECT
@@ -26,13 +26,13 @@ private slots:
     void saveLyrics();
 
 public:
-    explicit EditLyricsWindow(QWidget* parent = nullptr, TrayIcon* trayIcon = nullptr);
+    explicit EditLyricsWindow(MainApplication *mainApp, QWidget *parent = nullptr);
 
     ~EditLyricsWindow() override;
 
 private:
     Ui::EditLyricsWindow* ui;
-    TrayIcon* trayIcon;
+    MainApplication* mainApp;
 };
 
 

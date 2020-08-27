@@ -10,10 +10,10 @@
 #include <QPainterPath>
 #include <QMouseEvent>
 #include "DesktopLyricsWindow.h"
-#include "TrayIcon.h"
+#include "MainApplication.h"
 
-DesktopLyricsWindow::DesktopLyricsWindow(QWidget* parent, CLyric* lyric, TrayIcon* trayIcon)
-        : QWidget(parent), cLyric(lyric), trayIcon(trayIcon) {
+DesktopLyricsWindow::DesktopLyricsWindow(MainApplication *mainApp, CLyric *lyric, QWidget *parent)
+        : QWidget(parent), cLyric(lyric), mainApp(mainApp) {
 
     doubleLineDisplay = settings.value("doubleLineDisplay", false).toBool();
     bgColor = QColor(settings.value("bgColor", "#99000000").toString());
@@ -52,7 +52,7 @@ DesktopLyricsWindow::DesktopLyricsWindow(QWidget* parent, CLyric* lyric, TrayIco
 
     auto* startupItem = new CLyricItem("CrystalLyrics", 0);
 
-    firstLine = new CLyricLabel(this, desktopFont, lyricsTextColor, lyricsTextPlayedColor, startupItem, true);
+    firstLine = new CLyricLabel(desktopFont, lyricsTextColor, lyricsTextPlayedColor, startupItem, true, this);
 
     firstLine->setAlignment(firstLineAlignment);
     firstLine->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -60,14 +60,15 @@ DesktopLyricsWindow::DesktopLyricsWindow(QWidget* parent, CLyric* lyric, TrayIco
     layout->addWidget(firstLine);
 
     if (doubleLineDisplay) {
-        secondLine = new CLyricLabel(this, desktopFont, lyricsTextColor, lyricsTextPlayedColor, &cLyric::emptyCLyricItem, false);
+        secondLine = new CLyricLabel(desktopFont, lyricsTextColor, lyricsTextPlayedColor, &cLyric::emptyCLyricItem,
+                                     false, this);
         secondLine->setAlignment(secondLineAlignment);
         secondLine->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
         layout->addWidget(secondLine);
     }
 
-    this->resize(trayIcon->currentScreenIndex());
+    this->resize(mainApp->currentScreenIndex());
 }
 
 void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
@@ -77,7 +78,7 @@ void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
     currentLine = lineNum;
 
     if (cLyric->lyrics.empty()) {
-        pause();
+        hide();
         return;
     }
 
@@ -112,7 +113,7 @@ void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
         }
     }
 
-    resize(trayIcon->currentScreenIndex());
+    resize(mainApp->currentScreenIndex());
 
     if (timeInLine != 0) {
         firstLine->updateTime(timeInLine);
@@ -125,14 +126,14 @@ void DesktopLyricsWindow::updateLyric(CLyric* lyric) {
         cLyric = lyric;
     }
 
-    contentConversionTCSC = conversionTCSC && (trayIcon->currentTrack.contentLanguage == Track::Language::zh);
-    translationConversionTCSC = conversionTCSC && (trayIcon->currentTrack.translateLanguage == Track::Language::zh);
+    contentConversionTCSC = conversionTCSC && (mainApp->currentTrack.contentLanguage == Track::Language::zh);
+    translationConversionTCSC = conversionTCSC && (mainApp->currentTrack.translateLanguage == Track::Language::zh);
 
     currentLine = -1;
 
-    this->resume();
+    this->show();
     if (cLyric && cLyric->track.instrumental) {
-        this->pause();
+        this->hide();
     } else setLine(0);
 }
 
@@ -147,19 +148,19 @@ void DesktopLyricsWindow::paintEvent([[maybe_unused]] QPaintEvent* event) {
     painter.fillPath(path, bgColor);
 }
 
-void DesktopLyricsWindow::pause() {
+void DesktopLyricsWindow::hide() {
     auto* animation = new QPropertyAnimation(this, "windowOpacity");
     animation->setEndValue(0);
     animation->setDuration(200);
     connect(animation, &QPropertyAnimation::finished, [this]() {
-        this->hide();
+        QWidget::hide();
         sender()->deleteLater();
     });
     animation->start();
 }
 
-void DesktopLyricsWindow::resume() {
-    this->show();
+void DesktopLyricsWindow::show() {
+    QWidget::show();
     auto* animation = new QPropertyAnimation(this, "windowOpacity");
     animation->setEndValue(1);
     animation->setDuration(200);
@@ -172,9 +173,9 @@ void DesktopLyricsWindow::resize(int screenIndex) {
     const int screenWidth = screen->availableGeometry().width();
     const int screenHeight = screen->availableGeometry().height();
 
-    this->resume();
-    if (firstLine->text.trimmed().isEmpty() && (doubleLineDisplay ? secondLine->text.trimmed().isEmpty() : true))
-        this->pause();
+    this->show();
+    if (firstLine->text.trimmed().isEmpty() && (!doubleLineDisplay || secondLine->text.trimmed().isEmpty()))
+        this->hide();
 
     QFontMetricsF metrics(desktopFont);
 

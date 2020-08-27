@@ -15,14 +15,14 @@
 #include <QSettings>
 #include "CLyric.h"
 
-class TrayIcon;
+class MainApplication;
 
 using cLyric::CLyric;
 
 class LyricsWindow : public QWidget {
 Q_OBJECT
 public:
-    explicit LyricsWindow(QWidget* parent = nullptr, CLyric* lyric = nullptr, TrayIcon* trayIcon = nullptr);
+    explicit LyricsWindow(MainApplication *mainApp, CLyric *lyric = nullptr, QWidget *parent = nullptr);
 
     void clearLyrics();
 
@@ -47,7 +47,7 @@ private:
 
     QString windowBackgroundColor, windowLyricsTextColor, windowLyricsTextPlayingColor;
 
-    TrayIcon* trayIcon;
+    MainApplication* mainApp;
 
 protected:
     void closeEvent(QCloseEvent* event) override;
