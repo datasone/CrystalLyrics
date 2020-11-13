@@ -39,13 +39,13 @@ public:
 
     int currentScreenIndex();
 
-    CLyric* pcLyric = nullptr;
+    CLyric *pcLyric = nullptr;
 
     static opencc::SimpleConverter openCCSimpleConverter;
 
 private slots:
 
-    void screenChanged(QScreen* screen);
+    void screenChanged(QScreen *screen);
 
     void geometryChanged();
 
@@ -85,7 +85,7 @@ public slots:
 
     void reshowLyricsWindow();
 
-    void updateLyric(const CLyric& lyric, bool manualSearch);
+    void updateLyric(const CLyric &lyric, bool manualSearch);
 
     void updateTime(int position = -1, bool playing = true);
 
@@ -97,33 +97,33 @@ public slots:
 
 signals:
 
-    void lyricFound(const CLyric& lyric, bool manualSearch);
+    void lyricFound(const CLyric &lyric, bool manualSearch);
 
     void clearLyricsSignal();
 
 private:
-    QSystemTrayIcon* trayIcon;
-    QMenu* mainMenu, * screenSubMenu;
+    QSystemTrayIcon *trayIcon;
+    QMenu *mainMenu, *screenSubMenu;
 
     QAction
-            * lyricsWindowAction,
-            * desktopLyricsWindowAction,
-            * searchLyricAction,
-            * markAsWrongAction,
-            * markTrackAsInstrumentalAction,
-            * markAlbumAsInstrumentalAction,
-            * loadLocalLyricFileAction,
-            * editLyricsAction,
-            * offsetAction,
-            * settingsAction,
-            * exitAction;
+            *lyricsWindowAction,
+            *desktopLyricsWindowAction,
+            *searchLyricAction,
+            *markAsWrongAction,
+            *markTrackAsInstrumentalAction,
+            *markAlbumAsInstrumentalAction,
+            *loadLocalLyricFileAction,
+            *editLyricsAction,
+            *offsetAction,
+            *settingsAction,
+            *exitAction;
 
-    QActionGroup* actionGroup;
-    QList<QAction*> screenActions;
+    QActionGroup *actionGroup;
+    QList<QAction *> screenActions;
     QString chosenScreenName;
 
-    QLocalServer* server;
-    QHash<QLocalSocket*, QString> socketMap;
+    QLocalServer *server;
+    QHash<QLocalSocket *, QString> socketMap;
     QSettings settings;
 
     QPointer<DesktopLyricsWindow> desktopLyricsWindow = nullptr;
@@ -134,9 +134,9 @@ private:
     QPointer<OffsetWindow> offsetWindow = nullptr;
 
     CLyric cLyric;
-    CLyricItem* currentLyric = nullptr, * nextLyric = nullptr;
-    QElapsedTimer* eTimer;
-    QTimer* timer;
+    CLyricItem *currentLyric = nullptr, *nextLyric = nullptr;
+    QElapsedTimer *eTimer;
+    QTimer *timer;
     int elapsedTime = -1;
     int offset = 0;
 
@@ -148,15 +148,15 @@ private:
 
     void createMenu(bool firstTime = false);
 
-    void parseSocketResult(QLocalSocket* socket);
+    void parseSocketResult(QLocalSocket *socket);
 
-    void closeSocket(QLocalSocket* socket, const char* message = "");
+    void closeSocket(QLocalSocket *socket, const char *message = "");
 
     void pause();
 
     void resume();
 
-    void findLyric(const std::string& title, const std::string& album, const std::string& artist, int duration);
+    void findLyric(const std::string &title, const std::string &album, const std::string &artist, int duration);
 };
 
 

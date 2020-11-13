@@ -19,7 +19,9 @@
 #include <QLineEdit>
 
 #ifdef Q_OS_MACOS
+
 #include <CoreFoundation/CoreFoundation.h>
+
 #endif
 
 Q_DECLARE_METATYPE(CLyric)
@@ -27,7 +29,7 @@ Q_DECLARE_METATYPE(CLyric)
 Q_DECLARE_METATYPE(std::vector<CLyric>)
 
 #ifdef Q_OS_MACOS
-CFURLRef url = (CFURLRef)CFAutorelease((CFURLRef)CFBundleCopyBundleURL(CFBundleGetMainBundle()));
+CFURLRef url = (CFURLRef) CFAutorelease((CFURLRef) CFBundleCopyBundleURL(CFBundleGetMainBundle()));
 QString path = QUrl::fromCFURL(url).path() + "Contents/Resources/";
 #else
 QString path = "";
@@ -36,7 +38,8 @@ QString path = "";
 using cLyric::CLyricSearch;
 using cLyric::LyricStyle;
 
-opencc::SimpleConverter MainApplication::openCCSimpleConverter = opencc::SimpleConverter(path.toStdString() + "opencc-files/t2s.json");
+opencc::SimpleConverter MainApplication::openCCSimpleConverter =
+        opencc::SimpleConverter(path.toStdString() + "opencc-files/t2s.json");
 
 MainApplication::MainApplication() {
     appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -75,14 +78,14 @@ MainApplication::MainApplication() {
     trayIcon->show();
     trayIcon->setToolTip("CrystalLyrics");
 
-    QList<QScreen*> screens = QApplication::screens();
-            foreach(QScreen* screen, screens) {
-            connect(screen, &QScreen::geometryChanged, [this](const QRect&) { geometryChanged(); });
-        }
+    QList<QScreen *> screens = QApplication::screens();
+    foreach(QScreen *screen, screens) {
+        connect(screen, &QScreen::geometryChanged, [this](const QRect &) { geometryChanged(); });
+    }
 
-    connect(qobject_cast<QGuiApplication*>(QApplication::instance()), &QApplication::screenRemoved, this,
+    connect(qobject_cast<QGuiApplication *>(QApplication::instance()), &QApplication::screenRemoved, this,
             &MainApplication::screenChanged);
-    connect(qobject_cast<QGuiApplication*>(QApplication::instance()), &QApplication::screenAdded, this,
+    connect(qobject_cast<QGuiApplication *>(QApplication::instance()), &QApplication::screenAdded, this,
             &MainApplication::screenChanged);
 
     connect(lyricsWindowAction, &QAction::triggered, this, &MainApplication::showLyricsWindow);
@@ -98,8 +101,10 @@ MainApplication::MainApplication() {
     connect(exitAction, &QAction::triggered, QApplication::instance(), &QApplication::quit);
     connect(QApplication::instance(), &QApplication::aboutToQuit, this, &MainApplication::cleanupOnQuit);
 
-    connect(this, &MainApplication::lyricFound, this, &MainApplication::updateLyric, Qt::ConnectionType::QueuedConnection);
-    connect(this, &MainApplication::clearLyricsSignal, this, &MainApplication::clearLyrics, Qt::ConnectionType::QueuedConnection);
+    connect(this, &MainApplication::lyricFound, this, &MainApplication::updateLyric,
+            Qt::ConnectionType::QueuedConnection);
+    connect(this, &MainApplication::clearLyricsSignal, this, &MainApplication::clearLyrics,
+            Qt::ConnectionType::QueuedConnection);
 
     desktopLyrics = settings.value("desktopLyrics", false).toBool();
     if (desktopLyrics) {
@@ -140,6 +145,7 @@ void MainApplication::showLyricsWindow() {
         lyricsWindow->raise();
     } else {
         lyricsWindow->activateWindow();
+        searchWindow->raise();
     }
 }
 
@@ -152,7 +158,9 @@ void MainApplication::showSearchWindow() {
         searchWindow->activateWindow();
         searchWindow->raise();
     } else {
+        searchWindow->setTrack(currentTrack);
         searchWindow->activateWindow();
+        searchWindow->raise();
     }
 }
 
@@ -165,6 +173,7 @@ void MainApplication::showSettingsWindow() {
         settingsWindow->raise();
     } else {
         settingsWindow->activateWindow();
+        searchWindow->raise();
     }
 }
 
@@ -177,17 +186,18 @@ void MainApplication::showEditLyricsWindow() {
         editLyricsWindow->raise();
     } else {
         editLyricsWindow->activateWindow();
+        searchWindow->raise();
     }
 }
 
 void MainApplication::handleConnection() {
-    QLocalSocket* socket = server->nextPendingConnection();
+    QLocalSocket *socket = server->nextPendingConnection();
     connect(socket, &QLocalSocket::readyRead, this, &MainApplication::handleSocketRead);
     connect(socket, &QLocalSocket::disconnected, socket, &QLocalSocket::deleteLater);
 }
 
 void MainApplication::handleSocketRead() {
-    auto* socket = qobject_cast<QLocalSocket*>(sender());
+    auto *socket = qobject_cast<QLocalSocket *>(sender());
     const auto content = QString::fromUtf8(socket->readAll());
     if (socketMap.contains(socket)) {
         socketMap[socket] = socketMap[socket] + content;
@@ -197,7 +207,7 @@ void MainApplication::handleSocketRead() {
     parseSocketResult(socket);
 }
 
-void MainApplication::parseSocketResult(QLocalSocket* socket) {
+void MainApplication::parseSocketResult(QLocalSocket *socket) {
     const QString content = socketMap[socket].trimmed();
     if (!content.startsWith('^')) {
         closeSocket(socket, "Bad Request");
@@ -208,12 +218,12 @@ void MainApplication::parseSocketResult(QLocalSocket* socket) {
     }
     const QString task = content.right(content.size() - 2).split(']')[0];
     QMap<QString, QString> parameters;
-            foreach(QString parameter, content.mid(3 + task.size(), content.size() - 4 - task.size()).split('(')) {
-            if (parameter.right(1) != ')')
-                continue;
-            parameter = parameter.left(parameter.size() - 1);
-            parameters.insert(parameter.split('=')[0], parameter.split('=')[1].replace("\\[", "(").replace("\\]", ")"));
-        }
+    foreach(QString parameter, content.mid(3 + task.size(), content.size() - 4 - task.size()).split('(')) {
+        if (parameter.right(1) != ')')
+            continue;
+        parameter = parameter.left(parameter.size() - 1);
+        parameters.insert(parameter.split('=')[0], parameter.split('=')[1].replace("\\[", "(").replace("\\]", ")"));
+    }
     if (task == "setTrack") {
         if ((currentTrack.title == parameters["title"].toStdString()) &&
             (currentTrack.album == parameters["album"].toStdString()) &&
@@ -251,7 +261,7 @@ void MainApplication::parseSocketResult(QLocalSocket* socket) {
     closeSocket(socket);
 }
 
-void MainApplication::closeSocket(QLocalSocket* socket, const char* message) {
+void MainApplication::closeSocket(QLocalSocket *socket, const char *message) {
     socketMap.remove(socket);
     socket->write(message);
     socket->close();
@@ -265,7 +275,7 @@ void MainApplication::timerTimeout() {
 
     try {
         currentLyric = &pcLyric->lyrics.at(++currentLine);
-    } catch (const std::out_of_range& e) {
+    } catch (const std::out_of_range &e) {
         return;
     }
 
@@ -308,7 +318,7 @@ void MainApplication::resume() {
     }
 }
 
-void MainApplication::updateLyric(const CLyric& lyric, bool manualSearch) {
+void MainApplication::updateLyric(const CLyric &lyric, bool manualSearch) {
     if (!manualSearch && pcLyric)
         return;
 
@@ -325,7 +335,7 @@ void MainApplication::updateLyric(const CLyric& lyric, bool manualSearch) {
     }
 
     if (conversionTCSC) {
-        for (auto& item: pcLyric->lyrics) {
+        for (auto &item: pcLyric->lyrics) {
             if (stringContainsKana(item.content)) {
                 currentTrack.contentLanguage = Track::Language::ja;
                 break;
@@ -334,7 +344,7 @@ void MainApplication::updateLyric(const CLyric& lyric, bool manualSearch) {
                 currentTrack.contentLanguage = Track::Language::zh;
             }
         }
-        for (auto& item: pcLyric->lyrics) {
+        for (auto &item: pcLyric->lyrics) {
             if (stringContainsKana(item.translation)) {
                 currentTrack.translateLanguage = Track::Language::ja;
                 break;
@@ -402,7 +412,8 @@ void MainApplication::updateTime(int position, bool playing) {
 
 }
 
-void MainApplication::findLyric(const std::string& title, const std::string& album, const std::string& artist, int duration) {
+void MainApplication::findLyric(const std::string &title, const std::string &album, const std::string &artist,
+                                int duration) {
     if (appDataPath.isEmpty())
         return;
     CLyric lyric = CLyricSearch().fetchCLyric(title, album, artist, duration, appDataPath.toStdString());
@@ -418,7 +429,8 @@ void MainApplication::cleanupOnQuit() {
 }
 
 void MainApplication::loadLyricFile() {
-    QString fileName = QFileDialog::getOpenFileName(nullptr, "Select Lyric File", QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
+    QString fileName = QFileDialog::getOpenFileName(nullptr, "Select Lyric File",
+                                                    QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
     QFile lyricFile(fileName);
     if (!lyricFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox(QMessageBox::Critical, "CrystalLyrics", "Invalid Lyric File", QMessageBox::Ok).show();
@@ -446,7 +458,7 @@ void MainApplication::wrongLyric() {
 
 namespace {
     inline std::string normalizeFileName(std::string name) {
-        for (auto& c: name) {
+        for (auto &c: name) {
             if (static_cast<unsigned char>(c) > 127) {
                 // Non-Ascii char
                 continue;
@@ -530,7 +542,7 @@ void MainApplication::createMenu(bool firstTime) {
         mainMenu->deleteLater();
     }
 
-    QList<QScreen*> screens = QApplication::screens();
+    QList<QScreen *> screens = QApplication::screens();
     int screenIndex = 0;
 
     if (!chosenScreenName.isEmpty()) {
@@ -548,7 +560,7 @@ void MainApplication::createMenu(bool firstTime) {
     screenSubMenu = new QMenu("Desktop Lyrics Screen");
 
     for (int i = 0; i < screens.size(); ++i) {
-        auto* screenAction = new QAction(
+        auto *screenAction = new QAction(
                 QString("%1 %2x%3").arg(screens[i]->name()).arg(screens[i]->size().width()).arg(
                         screens[i]->size().height()));
         screenAction->setCheckable(true);
@@ -581,20 +593,20 @@ void MainApplication::createMenu(bool firstTime) {
 }
 
 void MainApplication::setDesktopLyricScreen() {
-    auto* action = qobject_cast<QAction*>(sender());
+    auto *action = qobject_cast<QAction *>(sender());
     int screenIndex = action->data().toInt();
-    QList<QScreen*> screens = QApplication::screens();
+    QList<QScreen *> screens = QApplication::screens();
     chosenScreenName = screens[screenIndex]->name();
     if (desktopLyricsWindow)
         desktopLyricsWindow->resize(screenIndex);
 }
 
-void MainApplication::screenChanged(QScreen* screen) {
-    QList<QScreen*> screens = QApplication::screens();
-            foreach(QScreen* screen, screens) {
-            screen->disconnect();
-            connect(screen, &QScreen::geometryChanged, [this](const QRect&) { geometryChanged(); });
-        }
+void MainApplication::screenChanged(QScreen *screen) {
+    QList<QScreen *> screens = QApplication::screens();
+    foreach(QScreen *screen, screens) {
+        screen->disconnect();
+        connect(screen, &QScreen::geometryChanged, [this](const QRect &) { geometryChanged(); });
+    }
     geometryChanged();
 }
 
@@ -607,14 +619,14 @@ void MainApplication::geometryChanged() {
 }
 
 int MainApplication::currentScreenIndex() {
-    QList<QScreen*> screens = QApplication::screens();
+    QList<QScreen *> screens = QApplication::screens();
 
     for (int i = 0; i < screens.size(); ++i) {
         if (screens[i]->name() == chosenScreenName) {
             return i;
         }
     }
-    return -1;
+    return 0;
 }
 
 void MainApplication::updateLyricOffset(int offset) {

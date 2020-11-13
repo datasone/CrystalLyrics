@@ -9,6 +9,7 @@
 #ifdef Q_OS_WIN
 #define _REGEX_MAX_STACK_COUNT 2000L
 #endif
+
 #include <regex>
 
 #include <cctype>
@@ -21,8 +22,8 @@
 
 using namespace cLyric;
 
-CLyricItem::CLyricItem(const std::vector<std::string>& lyricLines, LyricStyle style) {
-    for (const std::string& lyricLine : lyricLines) {
+CLyricItem::CLyricItem(const std::vector<std::string> &lyricLines, LyricStyle style) {
+    for (const std::string &lyricLine : lyricLines) {
         std::regex linePattern(R"((\[.*?\])+(.*))");
         std::regex timeTagPattern(R"(\[(\d{2})?:?(\d{2,3}):(\d{2})\.?(\d{1,3})?\])");
         std::regex wordTagPattern(R"(\[(\w+)\])");
@@ -39,14 +40,14 @@ CLyricItem::CLyricItem(const std::vector<std::string>& lyricLines, LyricStyle st
                 int hourTime = 0;
                 try {
                     hourTime = std::stoi(timeTagMatch.str(1));
-                } catch (std::invalid_argument& e) {}
+                } catch (std::invalid_argument &e) {}
                 int minuteTime = std::stoi(timeTagMatch.str(2));
                 int secondTime = std::stoi(timeTagMatch.str(3));
                 int millisecondTime = 0;
-                const std::string& millisecondString = timeTagMatch.str(4);
+                const std::string &millisecondString = timeTagMatch.str(4);
                 try {
                     millisecondTime = std::stoi(millisecondString);
-                } catch (std::invalid_argument& e) {}
+                } catch (std::invalid_argument &e) {}
 
                 switch (millisecondString.length()) {
                     case 1:
@@ -79,7 +80,7 @@ CLyricItem::CLyricItem(const std::vector<std::string>& lyricLines, LyricStyle st
                 translation = lineContent;
             } else if (wordTagMatch.str(1) == "tc") {
                 std::vector<std::string> lineTimeCodes = split_string(lineContent, "|");
-                for (const std::string& timecode : lineTimeCodes) {
+                for (const std::string &timecode : lineTimeCodes) {
                     std::vector<std::string> codes = split_string(timecode, ",");
                     timecodes.emplace_back(std::stoi(codes[0]), std::stoi(codes[1]));
                 }
@@ -148,11 +149,11 @@ CLyricItem::CLyricItem(const std::vector<std::string>& lyricLines, LyricStyle st
     }
 }
 
-bool CLyricItem::operator<(const CLyricItem& item) const {
+bool CLyricItem::operator<(const CLyricItem &item) const {
     return this->startTime < item.startTime;
 }
 
-bool CLyricItem::operator>(const CLyricItem& item) const {
+bool CLyricItem::operator>(const CLyricItem &item) const {
     return this->startTime > item.startTime;
 }
 
@@ -207,7 +208,7 @@ CLyric::CLyric(std::string lyricContent, LyricStyle style) {
         }
 
         if (tags.size() == 1) {
-            const std::string& tag = tags[0];
+            const std::string &tag = tags[0];
             if (std::isdigit(static_cast<unsigned char>(tag[0]))) { // Signed char UB
                 linesMap.insert(std::pair<std::string, std::string>(tag, "[" + tag + "]" + line));
             } else {
@@ -241,22 +242,23 @@ CLyric::CLyric(std::string lyricContent, LyricStyle style) {
                         content = previousContent;
                     }
 
-                    for (const std::string& previousTag: previousTags) {
+                    for (const std::string &previousTag: previousTags) {
                         if (std::isdigit(static_cast<unsigned char>(previousTag[0])))
                             linesMap.insert(
-                                    std::pair<std::string, std::string>(previousTag, "[" + previousTag + "]" + "[tr]" + content));
+                                    std::pair<std::string, std::string>(previousTag,
+                                                                        "[" + previousTag + "]" + "[tr]" + content));
                     }
                 }
             }
         } else {
-            for (auto& tag: tags) {
+            for (auto &tag: tags) {
                 if (!std::isdigit(static_cast<unsigned char>(tag[0]))) {
                     std::string prepend = "[";
                     prepend.append(tag).append("]").append(content);
                     content = prepend;
                 }
             }
-            for (auto& tag: tags) {
+            for (auto &tag: tags) {
                 if (std::isdigit(static_cast<unsigned char>(tag[0]))) {
                     std::ostringstream lineStream;
                     lineStream << "[" << tag << "]" << content;
@@ -277,7 +279,7 @@ CLyric::CLyric(std::string lyricContent, LyricStyle style) {
     }
 
     std::stable_sort(lyrics.begin(), lyrics.end(),
-                     [](const CLyricItem& item1, const CLyricItem& item2) {
+                     [](const CLyricItem &item1, const CLyricItem &item2) {
                          return item1.startTime < item2.startTime;
                      });
 }
@@ -286,20 +288,20 @@ std::string CLyric::filename() const {
     return filename(track.title, track.album, track.artist);
 }
 
-std::string CLyric::filename(const std::string& title, const std::string& album, const std::string& artist) {
+std::string CLyric::filename(const std::string &title, const std::string &album, const std::string &artist) {
     std::ostringstream stringStream;
     stringStream << title << " - " << artist << " - " << album << ".clrc";
     std::string filename = stringStream.str();
     return normalizeFileName(filename);
 }
 
-void CLyric::saveToFile(const std::string& saveDirectoryPath) {
+void CLyric::saveToFile(const std::string &saveDirectoryPath) {
     std::ofstream saveFile(std::filesystem::u8path(saveDirectoryPath + "/" + filename()), std::ios::out);
     saveFile << readableString();
     saveFile.close();
 }
 
-void CLyric::mergeTranslation(const CLyric& trans) {
+void CLyric::mergeTranslation(const CLyric &trans) {
     for (int i = 0, j = 0; i < this->lyrics.size() && j < trans.lyrics.size();) {
         if (this->lyrics[i++].startTime == trans.lyrics[j].startTime)
             this->lyrics[i - 1].translation = trans.lyrics[j++].content;
@@ -323,13 +325,15 @@ std::string CLyric::readableString() {
     }
     if (track.instrumental) {
         stringStream << "[instrumental]\n";
-    } else for (auto item: lyrics) {
-        stringStream << item.fileSaveString();
+    } else {
+        for (auto item: lyrics) {
+            stringStream << item.fileSaveString();
+        }
     }
     return stringStream.str();
 }
 
-void CLyric::deleteFile(const std::string& saveDirectoryPath) {
+void CLyric::deleteFile(const std::string &saveDirectoryPath) {
     remove(std::filesystem::u8path(saveDirectoryPath + "/" + filename()));
 }
 

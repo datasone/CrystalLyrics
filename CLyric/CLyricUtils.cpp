@@ -8,7 +8,7 @@
 #include <zlib.h>
 #include <cstring>
 
-size_t utf8StringChars(const std::string& str) {
+size_t utf8StringChars(const std::string &str) {
     size_t count = 0, i = 0;
     while (i < str.length()) {
         auto ch = static_cast<unsigned char>(str[i++]);
@@ -36,12 +36,12 @@ size_t utf8StringChars(const std::string& str) {
     return count;
 }
 
-int stringDistance(const std::string& compareString, const std::string& baseString) {
+int stringDistance(const std::string &compareString, const std::string &baseString) {
     return levenshteinDistance(compareString, baseString) + baseString.length() -
            longestCommonSubsequece(compareString, baseString);
 }
 
-int longestCommonSubsequece(const std::string& str1, const std::string& str2) {
+int longestCommonSubsequece(const std::string &str1, const std::string &str2) {
     int row = str1.length() + 1, column = str2.length() + 1;
     int i, j;
 
@@ -74,7 +74,7 @@ int longestCommonSubsequece(const std::string& str1, const std::string& str2) {
     return LCS[(row - 1) * column + (column - 1)];
 }
 
-int levenshteinDistance(const std::string& str1, const std::string& str2) {
+int levenshteinDistance(const std::string &str1, const std::string &str2) {
     int cost, row = str1.length() + 1, column = str2.length() + 1;
 
     std::vector<int> distance(row * column);
@@ -100,7 +100,7 @@ int levenshteinDistance(const std::string& str1, const std::string& str2) {
     return distance[(column - 1) * row + (row - 1)];
 }
 
-std::vector<std::string> split_string(const std::string& str, const std::string& delimiter) {
+std::vector<std::string> split_string(const std::string &str, const std::string &delimiter) {
     std::vector<std::string> strings;
 
     std::string::size_type pos;
@@ -116,7 +116,7 @@ std::vector<std::string> split_string(const std::string& str, const std::string&
     return strings;
 }
 
-bool zlibInflate(const std::string& compressed, std::string& uncompressed) {
+bool zlibInflate(const std::string &compressed, std::string &uncompressed) {
     if (compressed.empty()) {
         uncompressed = std::string();
         return true;
@@ -128,10 +128,10 @@ bool zlibInflate(const std::string& compressed, std::string& uncompressed) {
     unsigned halfLength = compressed.size() / 2;
 
     unsigned uncompLength = fullLength;
-    char* uncomp = new char[uncompLength];
+    char *uncomp = new char[uncompLength];
 
     z_stream zStream;
-    zStream.next_in = (Bytef*) compressed.c_str();
+    zStream.next_in = (Bytef *) compressed.c_str();
     zStream.avail_in = compressed.size();
     zStream.total_out = 0;
     zStream.zalloc = Z_NULL;
@@ -148,14 +148,14 @@ bool zlibInflate(const std::string& compressed, std::string& uncompressed) {
         // If our output buffer is too small
         if (zStream.total_out >= uncompLength) {
             // Increase size of output buffer
-            char* uncomp2 = new char[uncompLength + halfLength];
+            char *uncomp2 = new char[uncompLength + halfLength];
             std::memcpy(uncomp2, uncomp, uncompLength);
             uncompLength += halfLength;
             delete[] uncomp;
             uncomp = uncomp2;
         }
 
-        zStream.next_out = (Bytef*) (uncomp + zStream.total_out);
+        zStream.next_out = (Bytef *) (uncomp + zStream.total_out);
         zStream.avail_out = uncompLength - zStream.total_out;
 
         // Inflate another chunk.

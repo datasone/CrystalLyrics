@@ -50,7 +50,7 @@ DesktopLyricsWindow::DesktopLyricsWindow(MainApplication *mainApp, CLyric *lyric
     Qt::Alignment firstLineAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
     Qt::Alignment secondLineAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
 
-    auto* startupItem = new CLyricItem("CrystalLyrics", 0);
+    auto *startupItem = new CLyricItem("CrystalLyrics", 0);
 
     firstLine = new CLyricLabel(desktopFont, lyricsTextColor, lyricsTextPlayedColor, startupItem, true, this);
 
@@ -83,9 +83,9 @@ void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
     }
 
 #ifdef Q_OS_MACOS
-    QWidget* focusWidget = QApplication::focusWidget();
-    hide();
-    show();
+    QWidget *focusWidget = QApplication::focusWidget();
+    QWidget::hide();
+    QWidget::show();
     if (focusWidget) {
         focusWidget->activateWindow();
         focusWidget->raise();
@@ -95,7 +95,7 @@ void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
 #endif
 
     if (currentLine < cLyric->lyrics.size() - 1) {
-        CLyricItem* currentLyric = &cLyric->lyrics[currentLine], * nextLyric = &cLyric->lyrics[currentLine + 1];
+        CLyricItem *currentLyric = &cLyric->lyrics[currentLine], *nextLyric = &cLyric->lyrics[currentLine + 1];
 
         firstLine->updateLyric(currentLyric, true, contentConversionTCSC);
         if (doubleLineDisplay && currentLyric->isDoubleLine()) {
@@ -104,7 +104,7 @@ void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
             secondLine->updateLyric(nextLyric, true, contentConversionTCSC);
         }
     } else {
-        CLyricItem* currentLyric = &cLyric->lyrics[currentLine];
+        CLyricItem *currentLyric = &cLyric->lyrics[currentLine];
         firstLine->updateLyric(currentLyric, true, contentConversionTCSC);
         if (doubleLineDisplay && currentLyric->isDoubleLine()) {
             secondLine->updateLyric(currentLyric, false, translationConversionTCSC);
@@ -121,7 +121,7 @@ void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
 
 }
 
-void DesktopLyricsWindow::updateLyric(CLyric* lyric) {
+void DesktopLyricsWindow::updateLyric(CLyric *lyric) {
     if (lyric != nullptr) {
         cLyric = lyric;
     }
@@ -137,7 +137,7 @@ void DesktopLyricsWindow::updateLyric(CLyric* lyric) {
     } else setLine(0);
 }
 
-void DesktopLyricsWindow::paintEvent([[maybe_unused]] QPaintEvent* event) {
+void DesktopLyricsWindow::paintEvent([[maybe_unused]] QPaintEvent *event) {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
@@ -149,7 +149,7 @@ void DesktopLyricsWindow::paintEvent([[maybe_unused]] QPaintEvent* event) {
 }
 
 void DesktopLyricsWindow::hide() {
-    auto* animation = new QPropertyAnimation(this, "windowOpacity");
+    auto *animation = new QPropertyAnimation(this, "windowOpacity");
     animation->setEndValue(0);
     animation->setDuration(200);
     connect(animation, &QPropertyAnimation::finished, [this]() {
@@ -161,15 +161,15 @@ void DesktopLyricsWindow::hide() {
 
 void DesktopLyricsWindow::show() {
     QWidget::show();
-    auto* animation = new QPropertyAnimation(this, "windowOpacity");
+    auto *animation = new QPropertyAnimation(this, "windowOpacity");
     animation->setEndValue(1);
     animation->setDuration(200);
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 void DesktopLyricsWindow::resize(int screenIndex) {
-    QList<QScreen*> screens = QApplication::screens();
-    QScreen* screen = screens[screenIndex];
+    QList<QScreen *> screens = QApplication::screens();
+    QScreen *screen = screens[screenIndex];
     const int screenWidth = screen->availableGeometry().width();
     const int screenHeight = screen->availableGeometry().height();
 
@@ -189,8 +189,9 @@ void DesktopLyricsWindow::resize(int screenIndex) {
     }
 
     this->setFixedSize(fontWidth + metrics.averageCharWidth() * 4 + layout->contentsMargins().left() * 2,
-            (doubleLineDisplay ? fontHeight * 3 : fontHeight * 2) + layout->contentsMargins().top() * 2);
-    this->move(screen->geometry().x() + (screenWidth - this->width()) / 2, screen->geometry().y() + screenHeight - this->height() - 20);
+                       (doubleLineDisplay ? fontHeight * 3 : fontHeight * 2) + layout->contentsMargins().top() * 2);
+    this->move(screen->geometry().x() + (screenWidth - this->width()) / 2,
+               screen->geometry().y() + screenHeight - this->height() - 20);
 }
 
 void DesktopLyricsWindow::clearLyrics() {

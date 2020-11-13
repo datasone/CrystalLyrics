@@ -26,7 +26,8 @@ OffsetWindow::OffsetWindow(MainApplication *mainApp, CLyric *lyric, QWidget *par
     spinBox->setMinimum(-10000);
     spinBox->setSingleStep(100);
     spinBox->setValue(lyric ? lyric->offset : 0);
-    connect(spinBox, qOverload<double>(&QDoubleSpinBox::valueChanged), [mainApp](double offset) { mainApp->updateLyricOffset(int(offset)); });
+    connect(spinBox, qOverload<double>(&QDoubleSpinBox::valueChanged),
+            [mainApp](double offset) { mainApp->updateLyricOffset(int(offset)); });
 
     saveButton = new QPushButton("Save Offset", this);
     connect(saveButton, &QPushButton::clicked, [mainApp, this]() { mainApp->saveLyricOffset(int(spinBox->value())); });

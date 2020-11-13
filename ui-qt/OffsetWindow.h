@@ -16,7 +16,7 @@ class MainApplication;
 
 using cLyric::CLyric;
 
-class OffsetWindow: public QWidget {
+class OffsetWindow : public QWidget {
 Q_OBJECT
 public:
     explicit OffsetWindow(MainApplication *mainApp, CLyric *lyric = nullptr, QWidget *parent = nullptr);
@@ -25,11 +25,11 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
-    CLyric* cLyric;
-    MainApplication* mainApp;
-    QHBoxLayout* layout;
-    QDoubleSpinBox* spinBox;
-    QPushButton* saveButton;
+    CLyric *cLyric;
+    MainApplication *mainApp;
+    QHBoxLayout *layout;
+    QDoubleSpinBox *spinBox;
+    QPushButton *saveButton;
 };
 
 

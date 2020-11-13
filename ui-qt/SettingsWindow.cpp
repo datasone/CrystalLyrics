@@ -5,16 +5,16 @@
 #include <QFontDialog>
 #include <QtWidgets>
 
-inline QString fontString(const QFont& font) {
+inline QString fontString(const QFont &font) {
     return QString("%1 %2pt %3 %4").arg(font.family(), QString::number(font.pointSize()), font.bold() ? "Bold" : "",
                                         font.italic() ? "Italic" : "");
 }
 
-inline QString buttonColorStyleSheet(const QString& color) {
+inline QString buttonColorStyleSheet(const QString &color) {
     return QString("QPushButton { background-color : %1; }").arg(color);
 }
 
-inline QString extractColorFromStyleSheet(const QString& styleSheet) {
+inline QString extractColorFromStyleSheet(const QString &styleSheet) {
     return styleSheet.split("background-color : ")[1].split(';')[0];
 }
 
@@ -100,7 +100,7 @@ SettingsWindow::~SettingsWindow() {
     delete ui;
 }
 
-void SettingsWindow::closeEvent(QCloseEvent* event) {
+void SettingsWindow::closeEvent(QCloseEvent *event) {
     if (event->spontaneous()) {
         const QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Settings",
                                                                          "Do you want to save the settings?\n",
@@ -121,8 +121,8 @@ void SettingsWindow::closeEvent(QCloseEvent* event) {
 
 void SettingsWindow::selectFont() {
     bool ok = false;
-    auto *senderButton = qobject_cast<QPushButton*>(sender());
-    const QFont& currentFont = (senderButton == ui->fontSelect) ? desktopFont : windowFont;
+    auto *senderButton = qobject_cast<QPushButton *>(sender());
+    const QFont &currentFont = (senderButton == ui->fontSelect) ? desktopFont : windowFont;
     const QFont selectedFont = QFontDialog::getFont(&ok, currentFont, this);
     if (ok) {
         if (senderButton == ui->fontSelect) {
@@ -171,7 +171,7 @@ void SettingsWindow::saveSettings() {
 }
 
 void SettingsWindow::selectColor() {
-    auto *senderButton = qobject_cast<QPushButton*>(sender());
+    auto *senderButton = qobject_cast<QPushButton *>(sender());
     const QColor currentColor = QColor(senderButton->styleSheet());
     const QColor color = QColorDialog::getColor(currentColor, nullptr, QString(), QColorDialog::ShowAlphaChannel);
     if (color.isValid()) {

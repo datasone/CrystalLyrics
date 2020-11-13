@@ -5,7 +5,7 @@
 
 namespace {
 
-    QString generateKeyHash(const QString& key, const QString& salt) {
+    QString generateKeyHash(const QString &key, const QString &salt) {
         QByteArray data;
 
         data.append(key.toUtf8());
@@ -18,7 +18,7 @@ namespace {
 }
 
 
-RunGuard::RunGuard(const QString& key)
+RunGuard::RunGuard(const QString &key)
         : key(key), memLockKey(generateKeyHash(key, "_memLockKey")),
           sharedmemKey(generateKeyHash(key, "_sharedmemKey")), sharedMem(sharedmemKey), memLock(memLockKey, 1) {
     memLock.acquire();

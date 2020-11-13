@@ -9,7 +9,7 @@
 class RunGuard {
 
 public:
-    explicit RunGuard(const QString& key);
+    explicit RunGuard(const QString &key);
 
     ~RunGuard();
 

@@ -24,16 +24,16 @@ private:
     QFont font;
     QFontMetricsF metrics = QFontMetricsF(font);
     QColor color, playedColor;
-    CLyricItem* item;
+    CLyricItem *item;
     bool firstLine, hasTimeCode = false;
     QList<QPair<int, int>> pixelMap; // QList<QPair<ms, pixels>>
     int segmentIndex = 0, currentTimeInSegment = 0;
     double maskWidth = 0, maskWidthInterval = -1;
-    QTimer* fillTimer, * segmentTimer;
+    QTimer *fillTimer, *segmentTimer;
 
 public slots:
 
-    void updateLyric(CLyricItem* newItem = nullptr, bool isFirstLine = true, bool convertTCSC = false);
+    void updateLyric(CLyricItem *newItem = nullptr, bool isFirstLine = true, bool convertTCSC = false);
 
     void updateTime(int timeInMs);
 
@@ -44,7 +44,7 @@ private slots:
     void fill();
 
 protected:
-    void paintEvent(QPaintEvent* event) override;
+    void paintEvent(QPaintEvent *event) override;
 };
 
 

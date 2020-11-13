@@ -27,12 +27,12 @@ public:
     void clearLyrics();
 
 private:
-    QVBoxLayout* layout;
-    CLyricLabel* firstLine, * secondLine;
-    CLyric* cLyric;
+    QVBoxLayout *layout;
+    CLyricLabel *firstLine, *secondLine;
+    CLyric *cLyric;
     int currentLine = -1;
 
-    MainApplication* mainApp;
+    MainApplication *mainApp;
 
     QSettings settings;
     QColor bgColor, lyricsTextColor, lyricsTextPlayedColor;
@@ -41,7 +41,7 @@ private:
 
 public slots:
 
-    void updateLyric(CLyric* lyric = nullptr);
+    void updateLyric(CLyric *lyric = nullptr);
 
     void setLine(int lineNum, int timeInLine = 0);
 
@@ -50,7 +50,7 @@ public slots:
     void show();
 
 protected:
-    void paintEvent(QPaintEvent* event) override;
+    void paintEvent(QPaintEvent *event) override;
 };
 
 

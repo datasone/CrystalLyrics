@@ -23,10 +23,11 @@ CLyricLabel::CLyricLabel(const QFont &font, QColor color, QColor playedColor, CL
 
     metrics = QFontMetricsF(font);
     if (hasTimeCode) {
-        for (const auto& timecode : item->timecodes) {
-            pixelMap.append(QPair(timecode.first, metrics.horizontalAdvance(text,
-                                                                            timecode == item->timecodes.back() ? -1
-                                                                                                               : timecode.second)));
+        for (const auto &timecode : item->timecodes) {
+            pixelMap.append(QPair(
+                    timecode.first,
+                    metrics.horizontalAdvance(text, timecode == item->timecodes.back() ? -1 : timecode.second)
+            ));
         }
     }
 
@@ -38,7 +39,7 @@ CLyricLabel::CLyricLabel(const QFont &font, QColor color, QColor playedColor, CL
     connect(segmentTimer, &QTimer::timeout, this, [=]() { startFill(segmentIndex, 0); });
 }
 
-void CLyricLabel::paintEvent([[maybe_unused]] QPaintEvent* event) {
+void CLyricLabel::paintEvent([[maybe_unused]] QPaintEvent *event) {
     if (item == nullptr) {
         return;
     }
@@ -49,8 +50,8 @@ void CLyricLabel::paintEvent([[maybe_unused]] QPaintEvent* event) {
     painter.drawText(0, 0, width(), height(), alignment(), text);
 
     if (hasTimeCode) {
-        QPointF textStartingPos = getTextStartingPos(width(), height(), metrics.horizontalAdvance(text), metrics.height(),
-                                             alignment());
+        QPointF textStartingPos = getTextStartingPos(width(), height(), metrics.horizontalAdvance(text),
+                                                     metrics.height(), alignment());
 
         painter.setPen(playedColor);
         painter.drawText(QRectF(textStartingPos, QSizeF(maskWidth, height())), Qt::AlignTop | Qt::AlignLeft, text);
@@ -97,7 +98,7 @@ void CLyricLabel::fill() {
     update();
 }
 
-void CLyricLabel::updateLyric(CLyricItem* newItem, bool isFirstLine, bool convertTCSC) {
+void CLyricLabel::updateLyric(CLyricItem *newItem, bool isFirstLine, bool convertTCSC) {
 
     if (newItem == nullptr) { // Refresh and restart
         updateTime(0);
@@ -116,7 +117,7 @@ void CLyricLabel::updateLyric(CLyricItem* newItem, bool isFirstLine, bool conver
         hasTimeCode = !(item->timecodes.empty());
 
         if (hasTimeCode) {
-            for (const auto& timecode: item->timecodes) {
+            for (const auto &timecode: item->timecodes) {
                 pixelMap.append(QPair(timecode.first,
                                       metrics.horizontalAdvance(text,
                                                                 timecode == item->timecodes.back() ? -1

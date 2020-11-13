@@ -16,7 +16,8 @@
 
 using cLyric::CLyricSearch;
 
-SearchWindow::SearchWindow(const std::string& title, const std::string& artist, int duration, MainApplication* mainApp, QWidget* parent)
+SearchWindow::SearchWindow(const std::string &title, const std::string &artist, int duration, MainApplication *mainApp,
+                           QWidget *parent)
         : QMainWindow(parent), ui(new Ui::SearchWindow), duration(duration) {
     ui->setupUi(this);
 
@@ -71,7 +72,7 @@ void SearchWindow::searchLyrics() {
         auto lyrics = CLyricSearch().searchCLyric(title, artist, duration);
 
         std::stable_sort(lyrics.begin(), lyrics.end(),
-                         [&](const CLyric& res1, const CLyric& res2) {
+                         [&](const CLyric &res1, const CLyric &res2) {
                              int length = title.size() + artist.size() / 2;
                              int distance1 =
                                      stringDistance(res1.track.title, title) +
@@ -109,7 +110,7 @@ void SearchWindow::searchLyrics() {
 void SearchWindow::appendLyrics(std::vector<CLyric> lyrics) {
     ui->progressBar->setMaximum(100);
     ui->progressBar->setValue(100);
-    for (CLyric& lyric: lyrics) {
+    for (CLyric &lyric: lyrics) {
         int currentRow = ui->tableWidget->rowCount();
         ui->tableWidget->insertRow(currentRow);
         ui->tableWidget->setItem(currentRow, 0, new QTableWidgetItem(QString::fromStdString(lyric.track.title)));
@@ -124,12 +125,12 @@ void SearchWindow::appendLyrics(std::vector<CLyric> lyrics) {
     }
 }
 
-void SearchWindow::itemClicked(QTableWidgetItem* item) {
+void SearchWindow::itemClicked(QTableWidgetItem *item) {
     int row = item->row();
     if (selectedRow != row)
         selectedRow = row;
     else return;
-    CLyric& lyric = lyricList[row];
+    CLyric &lyric = lyricList[row];
     ui->lyricText->setText(QString::fromStdString(lyric.readableString()));
     if (coverImages.contains(QString::fromStdString(lyric.track.coverImageUrl))) {
         ui->coverImageLabel->setPixmap(coverImages[QString::fromStdString(lyric.track.coverImageUrl)]);
@@ -151,12 +152,12 @@ void SearchWindow::timeout() {
     }
 }
 
-void SearchWindow::itemDoubleClicked(QTableWidgetItem* item) {
-    CLyric& lyric = lyricList[item->row()];
+void SearchWindow::itemDoubleClicked(QTableWidgetItem *item) {
+    CLyric &lyric = lyricList[item->row()];
     emit updateLyricSignal(lyric, true);
 }
 
-void SearchWindow::coverDownloadfinished(QNetworkReply* reply) {
+void SearchWindow::coverDownloadfinished(QNetworkReply *reply) {
     int w = ui->coverImageLabel->width(), h = ui->coverImageLabel->height();
     if (timer->isActive())
         timer->stop();
@@ -164,4 +165,11 @@ void SearchWindow::coverDownloadfinished(QNetworkReply* reply) {
     pm.loadFromData(reply->readAll());
     coverImages[reply->url().toString()] = pm.scaled(w, h, Qt::KeepAspectRatio);
     ui->coverImageLabel->setPixmap(coverImages[reply->url().toString()]);
+}
+
+void SearchWindow::setTrack(const Track &track) {
+    ui->titleEdit->setText(QString::fromStdString(track.title));
+    ui->artistEdit->setText(QString::fromStdString(track.artist));
+
+    this->duration = track.duration;
 }

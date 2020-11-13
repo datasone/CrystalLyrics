@@ -23,35 +23,37 @@ private slots:
 
     void searchLyrics();
 
-    void itemClicked(QTableWidgetItem* item);
+    void itemClicked(QTableWidgetItem *item);
 
-    void itemDoubleClicked(QTableWidgetItem* item);
+    void itemDoubleClicked(QTableWidgetItem *item);
 
     void appendLyrics(std::vector<CLyric> lyrics);
 
-    void coverDownloadfinished(QNetworkReply* reply);
+    void coverDownloadfinished(QNetworkReply *reply);
 
     void timeout();
 
 public:
-    SearchWindow(const std::string& title, const std::string& artist, int duration, MainApplication* mainApp,
-                 QWidget* parent = nullptr);
+    SearchWindow(const std::string &title, const std::string &artist, int duration, MainApplication *mainApp,
+                 QWidget *parent = nullptr);
 
     ~SearchWindow() override;
+
+    void setTrack(const cLyric::Track &track);
 
 signals:
 
     void searchResultSignal(std::vector<CLyric> lyrics);
 
-    void updateLyricSignal(const CLyric& lyric, bool manualSearch);
+    void updateLyricSignal(const CLyric &lyric, bool manualSearch);
 
 private:
-    Ui::SearchWindow* ui;
+    Ui::SearchWindow *ui;
     int duration, selectedRow = -1;
 
-    QNetworkAccessManager* nam;
-    QNetworkReply* networkReply = nullptr;
-    QTimer* timer;
+    QNetworkAccessManager *nam;
+    QNetworkReply *networkReply = nullptr;
+    QTimer *timer;
     QMap<QString, QPixmap> coverImages;
 
     std::vector<CLyric> lyricList;

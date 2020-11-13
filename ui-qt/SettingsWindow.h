@@ -19,6 +19,7 @@ public:
     ~SettingsWindow() override;
 
 private slots:
+
     void selectFont();
 
     void selectColor();
@@ -26,13 +27,13 @@ private slots:
     void saveAndClose();
 
 protected:
-    void closeEvent(QCloseEvent* event) override;
+    void closeEvent(QCloseEvent *event) override;
 
     void saveSettings();
 
 private:
-    MainApplication* mainApp;
-    Ui::SettingsWindow* ui;
+    MainApplication *mainApp;
+    Ui::SettingsWindow *ui;
     QSettings settings;
     QFont desktopFont, windowFont;
 

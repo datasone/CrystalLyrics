@@ -32,14 +32,16 @@ EditLyricsWindow::~EditLyricsWindow() {
 
 void EditLyricsWindow::autoExtractTranslate() {
     ui->lyricsText->setPlainText(
-            ui->lyricsText->toPlainText().replace(QRegularExpression(R"(^(\[.*\])(.*) *\/ *(.*)$)",
-                                                                     QRegularExpression::MultilineOption),R"(\1\2
-\1[tr]\3)")
+            ui->lyricsText->toPlainText().replace(
+                    QRegularExpression(R"(^(\[.*\])(.*) *\/ *(.*)$)", QRegularExpression::MultilineOption),
+                    "\1\2\n\1[tr]\3"
+            )
     );
     ui->lyricsText->setPlainText(
-            ui->lyricsText->toPlainText().replace(QRegularExpression(R"(^(\[.*\])(.*) *<(.*)>$)",
-                                                                     QRegularExpression::MultilineOption),R"(\1\2
-\1[tr]\3)")
+            ui->lyricsText->toPlainText().replace(
+                    QRegularExpression(R"(^(\[.*\])(.*) *<(.*)>$)", QRegularExpression::MultilineOption),
+                    "\1\2\n\1[tr]\3"
+            )
     );
 }
 
@@ -54,7 +56,7 @@ void EditLyricsWindow::saveLyrics() {
 
 void EditLyricsWindow::adjustTime() {
     CLyric lyric = *(mainApp->pcLyric);
-    for (auto& item: lyric.lyrics) {
+    for (auto &item: lyric.lyrics) {
         int startTime = item.startTime, minuteTime = 0, secondTime = 0, millisecondTime = 0;
 
         if (startTime % 1000 != 0) {

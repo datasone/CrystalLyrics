@@ -27,34 +27,34 @@ public:
     void clearLyrics();
 
 protected:
-    void mousePressEvent(QMouseEvent* event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
-    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
 private:
     QPoint oldPos;
-    QVBoxLayout* textLayout, * rootLayout;
-    QScrollArea* scrollArea;
-    QWidget* displayArea;
-    QList<QLabel*> labels;
-    QLabel* activatedLabel = nullptr;
-    QPushButton* closeButton;
+    QVBoxLayout *textLayout, *rootLayout;
+    QScrollArea *scrollArea;
+    QWidget *displayArea;
+    QList<QLabel *> labels;
+    QLabel *activatedLabel = nullptr;
+    QPushButton *closeButton;
 
-    CLyric* cLyric;
+    CLyric *cLyric;
 
     QSettings settings;
     QFont windowFont;
 
     QString windowBackgroundColor, windowLyricsTextColor, windowLyricsTextPlayingColor;
 
-    MainApplication* mainApp;
+    MainApplication *mainApp;
 
 protected:
-    void closeEvent(QCloseEvent* event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 public slots:
 
-    void updateLyric(CLyric* lyric = nullptr);
+    void updateLyric(CLyric *lyric = nullptr);
 
     void activateLine(int lineNum);
 

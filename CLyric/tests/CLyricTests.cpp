@@ -103,7 +103,7 @@ TEST(CLyricTests, CLyricBasicLrcParseTest) {
     EXPECT_EQ(lyric.offset, 40) << "Lyric Offset Test Failed";
 
     std::vector<int> startTimes;
-    for (auto& item : lyric.lyrics) {
+    for (auto &item : lyric.lyrics) {
         startTimes.push_back(item.startTime);
     }
     std::sort(startTimes.begin(), startTimes.end());

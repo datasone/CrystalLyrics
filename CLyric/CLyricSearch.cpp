@@ -37,20 +37,22 @@ CLyric CLyricSearch::fetchCLyric(const std::string &title, const std::string &al
         return instrumentalLyric;
     }
 
-    std::function < void(std::vector<CLyric>) > callback = [this](std::vector<CLyric> lyrics) {
+    std::function<void(std::vector<CLyric>)> callback = [this](std::vector<CLyric> lyrics) {
         this->appendResultCallback(std::move(lyrics));
     };
-    for (std::unique_ptr<CLyricProvider>& provider: providerList) {
+    for (std::unique_ptr<CLyricProvider> &provider: providerList) {
         provider->searchLyrics(Track(title, album, artist, "", "", duration), callback);
     }
 
     std::stable_sort(results.begin(), results.end(),
-                     [title, artist](const CLyric& res1, const CLyric& res2) {
+                     [title, artist](const CLyric &res1, const CLyric &res2) {
                          int length = title.size() + artist.size() / 2;
                          int distance1 =
-                                 stringDistance(res1.track.title, title) + stringDistance(res1.track.artist, artist) / 2;
+                                 stringDistance(res1.track.title, title) +
+                                 stringDistance(res1.track.artist, artist) / 2;
                          int distance2 =
-                                 stringDistance(res2.track.title, title) + stringDistance(res2.track.artist, artist) / 2;
+                                 stringDistance(res2.track.title, title) +
+                                 stringDistance(res2.track.artist, artist) / 2;
                          double score1 = 1 - double(distance1) / length;
                          double score2 = 1 - double(distance2) / length;
                          if (std::any_of(res1.lyrics.begin(), res1.lyrics.end(),

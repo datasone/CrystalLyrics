@@ -31,8 +31,8 @@ public:
     ~EditLyricsWindow() override;
 
 private:
-    Ui::EditLyricsWindow* ui;
-    MainApplication* mainApp;
+    Ui::EditLyricsWindow *ui;
+    MainApplication *mainApp;
 };
 
 

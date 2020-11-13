@@ -13,7 +13,7 @@
 #include "LyricsWindow.h"
 #include "MainApplication.h"
 
-inline QString labelStylesheet(const QString& color) { return QString("QLabel { color : %1 }").arg(color); }
+inline QString labelStylesheet(const QString &color) { return QString("QLabel { color : %1 }").arg(color); }
 
 LyricsWindow::LyricsWindow(MainApplication *mainApp, CLyric *lyric, QWidget *parent)
         : QWidget(parent), cLyric(lyric), mainApp(mainApp) {
@@ -77,11 +77,11 @@ LyricsWindow::LyricsWindow(MainApplication *mainApp, CLyric *lyric, QWidget *par
         activateLine(mainApp->currentLine);
 }
 
-void LyricsWindow::mousePressEvent(QMouseEvent* event) {
+void LyricsWindow::mousePressEvent(QMouseEvent *event) {
     oldPos = event->globalPos();
 }
 
-void LyricsWindow::mouseMoveEvent(QMouseEvent* event) {
+void LyricsWindow::mouseMoveEvent(QMouseEvent *event) {
     const QPoint delta = event->globalPos() - oldPos;
     move(x() + delta.x(), y() + delta.y());
     oldPos = event->globalPos();
@@ -98,15 +98,15 @@ void LyricsWindow::activateLine(int lineNum) {
     centerWidgetInScrollArea(scrollArea, displayArea, activatedLabel);
 }
 
-void LyricsWindow::updateLyric(CLyric* lyric) {
+void LyricsWindow::updateLyric(CLyric *lyric) {
     if (lyric != nullptr)
         cLyric = lyric;
 
     clearLyrics();
 
     if (cLyric != nullptr) {
-        for (const CLyricItem& item : cLyric->lyrics) {
-            auto* label = new QLabel(displayArea);
+        for (const CLyricItem &item : cLyric->lyrics) {
+            auto *label = new QLabel(displayArea);
             label->setFont(windowFont);
             label->setStyleSheet(labelStylesheet(windowLyricsTextColor));
             label->setWordWrap(true);
@@ -127,7 +127,7 @@ void LyricsWindow::updateLyric(CLyric* lyric) {
     }
 }
 
-void LyricsWindow::closeEvent([[maybe_unused]] QCloseEvent* event) {
+void LyricsWindow::closeEvent([[maybe_unused]] QCloseEvent *event) {
     settings.setValue("lyricsWindowPosX", x());
     settings.setValue("lyricsWindowPosY", y());
 }
@@ -136,6 +136,6 @@ void LyricsWindow::clearLyrics() {
     activatedLabel = nullptr;
     qDeleteAll(labels);
     labels.clear();
-    for (auto *label : displayArea->findChildren<QWidget*>())
+    for (auto *label : displayArea->findChildren<QWidget *>())
         delete label;
 }

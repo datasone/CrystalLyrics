@@ -8,12 +8,12 @@
 #include <QLayout>
 #include <QPropertyAnimation>
 
-void centerWidgetInScrollArea(QScrollArea* scrollArea, QWidget* displayArea, QWidget* childWidget) {
+void centerWidgetInScrollArea(QScrollArea *scrollArea, QWidget *displayArea, QWidget *childWidget) {
     if (scrollArea == nullptr || !scrollArea->isAncestorOf(displayArea) || !displayArea->isAncestorOf(childWidget))
         return;
 
-    QScrollBar* horizontalScrollBar = scrollArea->horizontalScrollBar();
-    QScrollBar* verticalScrollBar = scrollArea->verticalScrollBar();
+    QScrollBar *horizontalScrollBar = scrollArea->horizontalScrollBar();
+    QScrollBar *verticalScrollBar = scrollArea->verticalScrollBar();
     QMargins margins = displayArea->layout()->contentsMargins();
     QPoint pos = childWidget->pos();
 
@@ -27,12 +27,12 @@ void centerWidgetInScrollArea(QScrollArea* scrollArea, QWidget* displayArea, QWi
                                 horizontalScrollBar->maximum());
     verticalTarget = std::min(std::max(verticalScrollBar->minimum(), verticalTarget), verticalScrollBar->maximum());
 
-    auto* horizontalAnimation = new QPropertyAnimation(horizontalScrollBar, "value");
+    auto *horizontalAnimation = new QPropertyAnimation(horizontalScrollBar, "value");
     horizontalAnimation->setDuration(500);
     horizontalAnimation->setStartValue(horizontalScrollBar->value());
     horizontalAnimation->setEndValue(horizontalTarget);
 
-    auto* verticalAnimation = new QPropertyAnimation(verticalScrollBar, "value");
+    auto *verticalAnimation = new QPropertyAnimation(verticalScrollBar, "value");
     verticalAnimation->setDuration(500);
     verticalAnimation->setStartValue(verticalScrollBar->value());
     verticalAnimation->setEndValue(verticalTarget);
@@ -62,7 +62,7 @@ QPointF getTextStartingPos(int x, int y, float width, float height, Qt::Alignmen
     return QPointF(px, py);
 }
 
-bool stringContainsKana(const std::string& s) {
+bool stringContainsKana(const std::string &s) {
     for (int i = 0; i < s.size(); ++i) {
         unsigned char c = s[i], c2 = 0;
         if (c == 0xE3u) {
@@ -74,7 +74,7 @@ bool stringContainsKana(const std::string& s) {
     return false;
 }
 
-bool stringContainsCJKCharacter(const std::string& s) {
+bool stringContainsCJKCharacter(const std::string &s) {
     for (unsigned char c : s) {
         if (c >= 0xE4u && c <= 0xEAu)
             return true;
