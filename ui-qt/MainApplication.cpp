@@ -284,7 +284,7 @@ void MainApplication::timerTimeout() {
     if (lyricsWindow)
         lyricsWindow->activateLine(currentLine);
 
-    if (currentLine < pcLyric->lyrics.size() - 1) {
+    if (currentLine < static_cast<int>(pcLyric->lyrics.size()) - 1) {
         nextLyric = &(pcLyric->lyrics[currentLine + 1]);
         timer->setInterval(nextLyric->startTime - currentLyric->startTime);
         timer->start();
@@ -397,7 +397,7 @@ void MainApplication::updateTime(int position, bool playing) {
         return;
     }
 
-    for (int i = 0; i < pcLyric->lyrics.size() - 2;) {
+    for (size_t i = 0; i < pcLyric->lyrics.size() - 2;) {
         if (pcLyric->lyrics[++i].startTime + offset > position) {
             currentLine = i - 1;
             timer->setInterval(pcLyric->lyrics[i].startTime + offset - position);
@@ -601,7 +601,7 @@ void MainApplication::setDesktopLyricScreen() {
         desktopLyricsWindow->resize(screenIndex);
 }
 
-void MainApplication::screenChanged(QScreen *screen) {
+void MainApplication::screenChanged([[maybe_unused]] QScreen *screen) {
     QList<QScreen *> screens = QApplication::screens();
     foreach(QScreen *screen, screens) {
         screen->disconnect();

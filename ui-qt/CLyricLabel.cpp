@@ -132,7 +132,7 @@ void CLyricLabel::updateLyric(CLyricItem *newItem, bool isFirstLine, bool conver
 void CLyricLabel::updateTime(int timeInMs) {
     int timeInSegment = -1;
     if (hasTimeCode) {
-        for (auto i = 0; i < item->timecodes.size() - 2;) {
+        for (size_t i = 0; i < item->timecodes.size() - 2;) {
             if (item->timecodes[++i].first > timeInMs) {
                 segmentIndex = i - 1;
                 timeInSegment = timeInMs - item->timecodes[segmentIndex].first;

@@ -13,7 +13,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 include_directories(CLyric)
 
-set(QT5_DIR "C:/Qt/Qt5.14.0/5.14.0/msvc2017_64")
+set(QT5_DIR "C:/Qt/5.15.1/msvc2019_64")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -87,4 +87,12 @@ if (APPLE)
     endif()
     add_custom_command(TARGET CrystalLyrics POST_BUILD
             COMMAND /bin/cp -R ${CMAKE_SOURCE_DIR}/opencc-res ${CMAKE_CURRENT_BINARY_DIR}/CrystalLyrics.app/Contents/Resources/opencc-files)
+endif()
+
+if (WIN32)
+    message("${CMAKE_CURRENT_BINARY_DIR}/windeployqt" "${CMAKE_CURRENT_BINARY_DIR}/CrystalLyrics.exe")
+
+    add_custom_command(TARGET CrystalLyrics POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/windeployqt"
+            COMMAND "${QT5_DIR}/bin/windeployqt.exe" --dir "${CMAKE_CURRENT_BINARY_DIR}/windeployqt" "${CMAKE_CURRENT_BINARY_DIR}/CrystalLyrics.exe")
 endif()

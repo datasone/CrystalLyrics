@@ -63,7 +63,7 @@ QPointF getTextStartingPos(int x, int y, float width, float height, Qt::Alignmen
 }
 
 bool stringContainsKana(const std::string &s) {
-    for (int i = 0; i < s.size(); ++i) {
+    for (size_t i = 0; i < s.size(); ++i) {
         unsigned char c = s[i], c2 = 0;
         if (c == 0xE3u) {
             c2 = s[i + 1]; // Second byte

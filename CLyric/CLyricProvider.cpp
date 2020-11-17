@@ -120,7 +120,7 @@ void Gecimi::searchLyrics(const Track &track, std::function<void(std::vector<CLy
         std::vector<CLyric> lyrics;
         std::map<int, std::string> artistMap, coverMap;
 
-        for (int i = 0; i < searchResult["result"].size(); ++i) {
+        for (size_t i = 0; i < searchResult["result"].size(); ++i) {
             auto item = searchResult["result"][i];
 
             // Get artist name

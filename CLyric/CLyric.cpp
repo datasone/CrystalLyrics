@@ -171,7 +171,7 @@ std::string CLyricItem::fileSaveString() {
     }
     if (!timecodes.empty()) {
         std::ostringstream timeCodeStringStream;
-        for (int i = 0; i < timecodes.size() - 1; ++i) {
+        for (size_t i = 0; i < timecodes.size() - 1; ++i) {
             timeCodeStringStream << timecodes[i].first << ',' << timecodes[i].second << '|';
         }
         timeCodeStringStream << timecodes.back().first << ',' << timecodes.back().second;
@@ -189,7 +189,7 @@ CLyric::CLyric(std::string lyricContent, LyricStyle style) {
     std::vector<std::string> lines = split_string(lyricContent, "\n");
     std::multimap<std::string, std::string> linesMap;
 
-    for (int i = 0; i < lines.size(); ++i) {
+    for (size_t i = 0; i < lines.size(); ++i) {
         std::string line = lines[i];
 
         std::regex linePattern(R"((\[.*?\])+(.*))");
@@ -302,7 +302,7 @@ void CLyric::saveToFile(const std::string &saveDirectoryPath) {
 }
 
 void CLyric::mergeTranslation(const CLyric &trans) {
-    for (int i = 0, j = 0; i < this->lyrics.size() && j < trans.lyrics.size();) {
+    for (size_t i = 0, j = 0; i < this->lyrics.size() && j < trans.lyrics.size();) {
         if (this->lyrics[i++].startTime == trans.lyrics[j].startTime)
             this->lyrics[i - 1].translation = trans.lyrics[j++].content;
     }

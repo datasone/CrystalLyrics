@@ -94,7 +94,7 @@ void DesktopLyricsWindow::setLine(int lineNum, int timeInLine) {
     // when the app is not in focus in macOS. A simple hide and show fixes it.
 #endif
 
-    if (currentLine < cLyric->lyrics.size() - 1) {
+    if (currentLine < static_cast<int>(cLyric->lyrics.size()) - 1) {
         CLyricItem *currentLyric = &cLyric->lyrics[currentLine], *nextLyric = &cLyric->lyrics[currentLine + 1];
 
         firstLine->updateLyric(currentLyric, true, contentConversionTCSC);
