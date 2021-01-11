@@ -6,7 +6,7 @@
 #ifndef CRYSTALLYRICS_CLYRICPROVIDER_H
 #define CRYSTALLYRICS_CLYRICPROVIDER_H
 
-#ifdef Q_OS_WIN
+#ifdef _WIN32
 #define NOMINMAX // Eliminate Win32 min and max
 #endif
 

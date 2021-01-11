@@ -6,12 +6,6 @@
 #include "CLyric.h"
 #include "CLyricUtils.h"
 
-#ifdef Q_OS_WIN
-#define _REGEX_MAX_STACK_COUNT 2000L
-#endif
-
-#include <regex>
-
 #include <cctype>
 #include <sstream>
 #include <fstream>
@@ -195,6 +189,9 @@ CLyric::CLyric(std::string lyricContent, LyricStyle style) {
         std::regex linePattern(R"((\[.*?\])+(.*))");
         std::smatch lineMatch;
         std::string content;
+        if (line.size() > 400) {
+            continue;
+        }
         if (std::regex_match(line, lineMatch, linePattern)) {
             content = lineMatch.str(2);
         }

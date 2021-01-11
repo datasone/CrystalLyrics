@@ -403,9 +403,12 @@ void QQMusic::searchLyrics(const Track &track, std::function<void(std::vector<CL
             std::string decodedLyric, decodedTrans;
             macaron::Base64::Decode(lyric, decodedLyric);
             unescapeXmlSpeChars(decodedLyric);
-            CLyric cLyric = CLyric(decodedLyric,
-                                   Track(result.title, result.album, result.artist,
-                                         coverImageUrl, "QQMusic", result.duration), LyricStyle::CLrcStyle);
+            CLyric cLyric(decodedLyric,
+                          Track(
+                                  result.title, result.album, result.artist, coverImageUrl,
+                                  "QQMusic", result.duration
+                                  ),
+                          LyricStyle::CLrcStyle);
 
             if (!lyricResponse["trans"].is_null()) {
                 std::string trans = lyricResponse["trans"];

@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 #include <functional>
+#include <regex>
 
 namespace cLyric {
 
