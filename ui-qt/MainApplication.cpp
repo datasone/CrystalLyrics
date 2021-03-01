@@ -255,6 +255,13 @@ void MainApplication::parseSocketResult(QLocalSocket *socket) {
         const int position = parameters["position"].toInt();
         const bool playing = parameters["playing"] == "true";
         updateTime(position, playing);
+    } else if (task == "setQuit") {
+        const bool quit = parameters["quit"] == "true";
+        if (quit) {
+            desktopLyricsWindow->hide();
+            desktopLyricsWindow->clearLyrics();
+            currentTrack = Track();
+        }
     } else {
         closeSocket(socket, "Bad Request");
     }
