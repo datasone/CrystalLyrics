@@ -1,4 +1,4 @@
-//
+ //
 // Created by datasone.
 // This file is part of CrystalLyrics.
 //
@@ -137,7 +137,6 @@ void SearchWindow::itemClicked(QTableWidgetItem *item) {
     } else {
         QNetworkRequest request(QUrl(QString::fromStdString(lyric.track.coverImageUrl)));
         request.setRawHeader("User-Agent", "CrystalLyrics/0.0.1");
-        request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
         networkReply = nam->get(request);
         if (timer->isActive())
             timer->stop();

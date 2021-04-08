@@ -19,15 +19,15 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -isystem ${QT5_DIR}/include/QtCore -isystem ${QT5_DIR}/include/QtWidgets -isystem ${QT5_DIR}/include/QtNetwork ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -isystem ${QT_DIR}/include/QtCore -isystem ${QT_DIR}/include/QtWidgets -isystem ${QT_DIR}/include/QtNetwork ${CMAKE_CXX_FLAGS}")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
     if ("${CMAKE_CXX_SIMULATE_ID}" STREQUAL "MSVC")
-        set(CMAKE_CXX_FLAGS "/W4 /EHa \"/clang:-isystem ${QT5_DIR}/include/QtCore\" \"/clang:-isystem ${QT5_DIR}/include/QtWidgets\" \"/clang:-isystem ${QT5_DIR}/include/QtNetwork\" ${CMAKE_CXX_FLAGS}")
+        set(CMAKE_CXX_FLAGS "/W4 /EHa \"/clang:-isystem ${QT_DIR}/include/QtCore\" \"/clang:-isystem ${QT_DIR}/include/QtWidgets\" \"/clang:-isystem ${QT_DIR}/include/QtNetwork\" ${CMAKE_CXX_FLAGS}")
     else ()
-        set(CMAKE_CXX_FLAGS "-Wall -Wextra -isystem ${QT5_DIR}/include/QtCore -isystem ${QT5_DIR}/include/QtWidgets -isystem ${QT5_DIR}/include/QtNetwork ${CMAKE_CXX_FLAGS}")
+        set(CMAKE_CXX_FLAGS "-Wall -Wextra -isystem ${QT_DIR}/include/QtCore -isystem ${QT_DIR}/include/QtWidgets -isystem ${QT_DIR}/include/QtNetwork ${CMAKE_CXX_FLAGS}")
     endif ()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    set(CMAKE_CXX_FLAGS "/W4 /EHa /external:I ${QT5_DIR}/include/QtCore /external:I ${QT5_DIR}/include/QtWidgets /external:I ${QT5_DIR}/include/QtNetwork /external:W0 ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "/W4 /EHa /external:I ${QT_DIR}/include/QtCore /external:I ${QT_DIR}/include/QtWidgets /external:I ${QT_DIR}/include/QtNetwork /external:W0 ${CMAKE_CXX_FLAGS}")
 else ()
     message(FATAL_ERROR "Unsupported compiler!")
 endif ()
@@ -38,7 +38,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND "${CMAKE_CXX_COMPILER_ID}" STREQUA
     add_link_options("-Wl,-rpath,/usr/local/opt/llvm/lib")
 endif()
 
-find_package(Qt5 COMPONENTS Core Widgets Network REQUIRED)
+find_package(Qt6 COMPONENTS Core Widgets Network REQUIRED)
 
 find_package(OpenCC REQUIRED)
 
@@ -46,7 +46,7 @@ include_directories(${Opencc_INCLUDE_PATH})
 
 add_subdirectory(CLyric)
 
-qt5_add_resources(QT_RESOURCES ui-qt/res/crystallyrics.qrc)
+qt6_add_resources(QT_RESOURCES ui-qt/res/crystallyrics.qrc)
 
 aux_source_directory(ui-qt CRYSTALLYRICS_SRC)
 
@@ -74,7 +74,7 @@ else ()
     add_executable(CrystalLyrics ${CRYSTALLYRICS_SRC} ${QT_RESOURCES})
 endif ()
 
-target_link_libraries(CrystalLyrics PRIVATE Qt5::Core Qt5::Widgets Qt5::Network ${Opencc_LIBRARY} CLyric)
+target_link_libraries(CrystalLyrics PRIVATE Qt6::Core Qt6::Widgets Qt6::Network ${Opencc_LIBRARY} CLyric)
 
 if (APPLE)
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -93,5 +93,5 @@ if (WIN32)
 
     add_custom_command(TARGET CrystalLyrics POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/windeployqt"
-            COMMAND "${QT5_DIR}/bin/windeployqt.exe" --dir "${CMAKE_CURRENT_BINARY_DIR}/windeployqt" "${CMAKE_CURRENT_BINARY_DIR}/CrystalLyrics.exe")
+            COMMAND "${QT_DIR}/bin/windeployqt.exe" --dir "${CMAKE_CURRENT_BINARY_DIR}/windeployqt" "${CMAKE_CURRENT_BINARY_DIR}/CrystalLyrics.exe")
 endif()

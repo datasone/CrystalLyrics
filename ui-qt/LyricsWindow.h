@@ -32,7 +32,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
 
 private:
-    QPoint oldPos;
+    QPointF oldPos;
     QVBoxLayout *textLayout, *rootLayout;
     QScrollArea *scrollArea;
     QWidget *displayArea;

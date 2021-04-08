@@ -24,7 +24,7 @@ CLyricLabel::CLyricLabel(const QFont &font, QColor color, QColor playedColor, CL
     metrics = QFontMetricsF(font);
     if (hasTimeCode) {
         for (const auto &timecode : item->timecodes) {
-            pixelMap.append(QPair(
+            pixelMap.append(QPair<int, int>(
                     timecode.first,
                     metrics.horizontalAdvance(text, timecode == item->timecodes.back() ? -1 : timecode.second)
             ));
@@ -118,7 +118,7 @@ void CLyricLabel::updateLyric(CLyricItem *newItem, bool isFirstLine, bool conver
 
         if (hasTimeCode) {
             for (const auto &timecode: item->timecodes) {
-                pixelMap.append(QPair(timecode.first,
+                pixelMap.append(QPair<int, int>(timecode.first,
                                       metrics.horizontalAdvance(text,
                                                                 timecode == item->timecodes.back() ? -1
                                                                                                    : timecode.second)));

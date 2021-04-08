@@ -2,7 +2,7 @@
 #include "utils.h"
 #include "RunGuard.h"
 
-#include <fstream>
+#include <QtGlobal>
 #include <QApplication>
 
 // TODO: Kana
@@ -14,7 +14,6 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setOrganizationName("datasone");
     QCoreApplication::setOrganizationDomain("datasone.moe");
     QCoreApplication::setApplicationName("CrystalLyrics");
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
     QApplication app(argc, argv);
     QApplication::setWindowIcon(QIcon(":/image/icon.png"));

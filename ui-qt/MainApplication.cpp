@@ -32,7 +32,7 @@ Q_DECLARE_METATYPE(std::vector<CLyric>)
 CFURLRef url = (CFURLRef) CFAutorelease((CFURLRef) CFBundleCopyBundleURL(CFBundleGetMainBundle()));
 QString path = QUrl::fromCFURL(url).path() + "Contents/Resources/";
 #else
-QString path = "";
+QString path = QCoreApplication::applicationDirPath();
 #endif
 
 using cLyric::CLyricSearch;
@@ -222,7 +222,7 @@ void MainApplication::parseSocketResult(QLocalSocket *socket) {
         if (parameter.right(1) != ')')
             continue;
         parameter = parameter.left(parameter.size() - 1);
-        parameters.insert(parameter.split('=')[0], parameter.split('=')[1].replace("\\[", "(").replace("\\]", ")"));
+        parameters.insert(parameter.split('=')[0], parameter.split('=')[1].replace("\\\\[", "(").replace("\\\\]", ")"));
     }
     if (task == "setTrack") {
         if ((currentTrack.title == parameters["title"].toStdString()) &&
@@ -444,7 +444,7 @@ void MainApplication::loadLyricFile() {
         return;
     }
     QTextStream lyricIn(&lyricFile);
-    lyricIn.setCodec("UTF-8");
+    lyricIn.setEncoding(QStringConverter::Utf8);
     QString fileContent = lyricIn.readAll();
     CLyric lyric(fileContent.toStdString(), currentTrack, LyricStyle::CLrcStyle);
     if (lyric.isValid())

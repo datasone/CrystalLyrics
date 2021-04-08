@@ -16,7 +16,8 @@
 #include <CLyric/CLyric.h>
 #include <QtWidgets/QSystemTrayIcon>
 #include <QtWidgets/QMenu>
-#include <QtWidgets/QAction>
+#include <QtGui/QAction>
+#include <QtGui/QActionGroup>
 #include <QtCore/QPointer>
 #include <QtNetwork/QLocalServer>
 #include <QtCore/QHash>

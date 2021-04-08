@@ -37,7 +37,7 @@ LyricsWindow::LyricsWindow(MainApplication *mainApp, CLyric *lyric, QWidget *par
         this->move(settings.value("lyricsWindowPosX").toInt(), settings.value("lyricsWindowPosY").toInt());
 
     rootLayout = new QVBoxLayout(this);
-    rootLayout->setMargin(0);
+    rootLayout->setContentsMargins(0, 0, 0, 0);
 
     scrollArea = new QScrollArea(this);
     scrollArea->setFrameStyle(QFrame::NoFrame);
@@ -49,7 +49,7 @@ LyricsWindow::LyricsWindow(MainApplication *mainApp, CLyric *lyric, QWidget *par
     displayArea = new QWidget(scrollArea);
     textLayout = new QVBoxLayout(displayArea);
     textLayout->setSpacing(40);
-    textLayout->setMargin(0);
+    textLayout->setContentsMargins(0, 0, 0, 0);
 
     auto windowFontFamily = settings.value("windowFont/family");
     if (windowFontFamily.isNull()) {
@@ -78,13 +78,13 @@ LyricsWindow::LyricsWindow(MainApplication *mainApp, CLyric *lyric, QWidget *par
 }
 
 void LyricsWindow::mousePressEvent(QMouseEvent *event) {
-    oldPos = event->globalPos();
+    oldPos = event->globalPosition();
 }
 
 void LyricsWindow::mouseMoveEvent(QMouseEvent *event) {
-    const QPoint delta = event->globalPos() - oldPos;
+    const QPointF delta = event->globalPosition() - oldPos;
     move(x() + delta.x(), y() + delta.y());
-    oldPos = event->globalPos();
+    oldPos = event->globalPosition();
 }
 
 void LyricsWindow::activateLine(int lineNum) {
