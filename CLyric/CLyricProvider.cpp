@@ -421,8 +421,11 @@ void QQMusic::searchLyrics(const Track &track, std::function<void(std::vector<CL
                 cLyric.mergeTranslation(transLyric);
             }
 
-            emptyTransBreak:
-
+emptyTransBreak:
+            if (cLyric.lyrics.size() == 1 && cLyric.lyrics[0].content == "此歌曲为没有填词的纯音乐，请您欣赏") {
+                cLyric.track.instrumental = true;
+                cLyric.lyrics.clear();
+            }
             lyrics.push_back(cLyric);
 
             if (++count > 5) break;
