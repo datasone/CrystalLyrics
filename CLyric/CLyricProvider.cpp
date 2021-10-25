@@ -26,6 +26,7 @@ CLyricProvider::CLyricProvider() {
     curl_easy_setopt(curlHandle, CURLOPT_FOLLOWLOCATION, 1);
     curl_easy_setopt(curlHandle, CURLOPT_ACCEPT_ENCODING, "br, gzip, deflate");
     curl_easy_setopt(curlHandle, CURLOPT_USERAGENT, "CrystalLyrics/0.0.1");
+    curl_easy_setopt(curlHandle, CURLOPT_COOKIEFILE, "");
 }
 
 CLyricProvider::~CLyricProvider() {
@@ -444,11 +445,14 @@ QQMusic::QQMusicResult::QQMusicResult(std::string title, std::string artist, std
 }
 
 void Netease::searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) {
+    bool firstTry = true;
+
     std::string url = "http://music.163.com/api/search/pc";
     url.append("?s=").append(normalizeName(track.title + " " + track.artist, true));
     url.append("&offset=0").append("&limit=10").append("&type=1");
     curl_easy_setopt(curlHandle, CURLOPT_REFERER, "http://music.163.com/");
     curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
+retry:
     response.clear();
     CURLcode curlResult = curl_easy_perform(curlHandle);
 
@@ -459,6 +463,11 @@ void Netease::searchLyrics(const Track &track, std::function<void(std::vector<CL
         std::vector<CLyric> lyrics;
         std::vector<NeteaseResult> results;
         auto searchResult = json::parse(response);
+
+        if (firstTry && searchResult["code"].is_number() && searchResult["code"] != 200) {
+            firstTry = false;
+            goto retry;
+        }
 
         for (auto &searchItem: searchResult["result"]["songs"]) {
             results.emplace_back(searchItem["name"], searchItem["artists"][0]["name"], searchItem["album"]["name"],
