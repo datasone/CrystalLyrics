@@ -539,7 +539,7 @@ Netease::NeteaseResult::NeteaseResult(std::string title, std::string artist, std
 void THBWiki::searchLyrics(const Track &track, std::function<void(std::vector<CLyric>)> appendResultCallback) {
     long responseCode;
 
-    std::string url = "https://touhou.cd/lyrics/";
+    std::string url = "https://cd.thwiki.cc/lyrics/";
     url.append(normalizeName(trim_copy(track.title), true)).append(".all.lrc");
     curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
     response.clear();
