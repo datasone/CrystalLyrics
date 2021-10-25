@@ -50,7 +50,7 @@ qt6_add_resources(QT_RESOURCES ui-qt/res/crystallyrics.qrc)
 
 aux_source_directory(ui-qt CRYSTALLYRICS_SRC)
 
-if (CMAKE_BUILD_TYPE MATCHES REL AND WIN32)
+if (CMAKE_BUILD_TYPE MATCHES Rel* AND WIN32)
     add_executable(CrystalLyrics WIN32 ${CRYSTALLYRICS_SRC} ui-qt/res/CrystalLyrics.rc ${QT_RESOURCES})
 elseif (APPLE)
     add_executable(CrystalLyrics MACOSX_BUNDLE ${CRYSTALLYRICS_SRC} ${QT_RESOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/ui-qt/res/icon.icns ${OPENCC_RESOURCES})
