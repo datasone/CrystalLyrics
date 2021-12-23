@@ -149,6 +149,7 @@ void DesktopLyricsWindow::paintEvent([[maybe_unused]] QPaintEvent *event) {
 }
 
 void DesktopLyricsWindow::hide() {
+    isHidden = true;
     auto *animation = new QPropertyAnimation(this, "windowOpacity");
     animation->setEndValue(0);
     animation->setDuration(200);
@@ -160,6 +161,7 @@ void DesktopLyricsWindow::hide() {
 }
 
 void DesktopLyricsWindow::show() {
+    isHidden = false;
     QWidget::show();
     auto *animation = new QPropertyAnimation(this, "windowOpacity");
     animation->setEndValue(1);
@@ -174,7 +176,7 @@ void DesktopLyricsWindow::resize(int screenIndex) {
     const int screenHeight = screen->availableGeometry().height();
 
     this->show();
-    if (firstLine->text.trimmed().isEmpty() && (!doubleLineDisplay || secondLine->text.trimmed().isEmpty()))
+    if (isHidden || (firstLine->text.trimmed().isEmpty() && (!doubleLineDisplay || secondLine->text.trimmed().isEmpty())))
         this->hide();
 
     QFontMetricsF metrics(desktopFont);

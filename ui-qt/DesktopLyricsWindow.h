@@ -37,6 +37,7 @@ private:
     QSettings settings;
     QColor bgColor, lyricsTextColor, lyricsTextPlayedColor;
     bool doubleLineDisplay, conversionTCSC, contentConversionTCSC = false, translationConversionTCSC = false;
+    bool isHidden;
     QFont desktopFont;
 
 public slots:
